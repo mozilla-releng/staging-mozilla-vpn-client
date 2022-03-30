@@ -1,0 +1,1 @@
+staging-mozilla-vpn-client
