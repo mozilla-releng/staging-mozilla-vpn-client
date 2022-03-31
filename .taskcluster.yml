@@ -113,6 +113,9 @@ tasks:
                       short_head_branch:
                           $if: 'head_branch[:11] == "refs/heads/"'
                           then: {$eval: 'head_branch[11:]'}
+                          else:
+                              $if: 'head_branch[:10] == "refs/tags/"'
+                              then: {$eval: 'head_branch[10:]'}
                   in:
                     $mergeDeep:
                         - $if: 'tasks_for != "action"'
