@@ -263,6 +263,7 @@ tasks:
                                   - -cx
                                   - $let:
                                         extraArgs: {$if: 'tasks_for == "cron"', then: '${cron.quoted_args}', else: ''}
+                                        modifiedTasksFor: {$if: 'isRelease', then: 'github-release', else: '{tasks_for}'}
                                     in:
                                         $if: 'tasks_for == "action"'
                                         then: >
@@ -287,7 +288,7 @@ tasks:
                                             --head-rev="$MOZILLAVPN_HEAD_REV"
                                             --head-tag="$MOZILLAVPN_HEAD_TAG"
                                             --repository-type="$MOZILLAVPN_REPOSITORY_TYPE"
-                                            --tasks-for='${tasks_for}'
+                                            --tasks-for='${modifiedTasksFor}'
                                             ${extraArgs}
 
                               artifacts:
