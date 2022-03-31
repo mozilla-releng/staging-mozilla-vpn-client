@@ -23,3 +23,4 @@ def get_decision_parameters(graph_config, parameters):
 
     pr_number = os.environ.get("MOZILLAVPN_PULL_REQUEST_NUMBER", None)
     parameters["pull_request_number"] = None if pr_number is None else int(pr_number)
+    parameters["target_tasks_method"] = "nothing"
