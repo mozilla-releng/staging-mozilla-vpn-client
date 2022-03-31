@@ -242,7 +242,7 @@ tasks:
                                             MOZILLAVPN_HEAD_TAG:
                                               $if: 'tasks_for == "github-release"'
                                               then: '${event.release.tag_name}'
-                                              else: '${event.ref}[10:]'  # 10 == len('/refs/tags/')
+                                              else: '${event.ref[10:]}'  # 10 == len('/refs/tags/')
                               features:
                                   taskclusterProxy: true
                                   chainOfTrust: true
