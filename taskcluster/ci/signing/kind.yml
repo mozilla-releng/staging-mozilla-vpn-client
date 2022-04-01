@@ -31,7 +31,7 @@ job-template:
     signing-format:
         by-build-type:
             # macosx.*: macapp
-            linux.*: autograph_gpg
+            linux.*: autograph_debsign
             android.*: autograph_apk
             default: ""
 
