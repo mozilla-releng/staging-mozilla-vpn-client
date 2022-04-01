@@ -54,8 +54,8 @@ workers:
             os: scriptworker
             worker-type:
                 by-level:
-                    "3": mozillavpn-3-signing
-                    default: mozillavpn-t-signing
+                    # "3": mozillavpn-3-signing
+                    default: mozillavpn-t-signing-dev
         push-apk:
             provisioner: scriptworker-k8s
             implementation: scriptworker-pushapk
