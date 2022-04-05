@@ -17,7 +17,7 @@ linux/opt:
             max-run-time: 3600
             chain-of-trust: true
         release-artifacts:
-            # artifacts expects file to be in /builds/worker/artifacts/
+            # release-artifacts expects file to be in /builds/worker/artifacts/
             - target.tar.gz
         run:
             using: run-task
