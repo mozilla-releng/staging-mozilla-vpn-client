@@ -47,7 +47,7 @@ workers:
             provisioner: scriptworker-k8s
             implementation: scriptworker-signing
             os: scriptworker
-            worker-type: mozillavpn-t-signing
+            worker-type: mozillavpn-t-signing-dev
         signing:
             provisioner: scriptworker-k8s
             implementation: scriptworker-signing
