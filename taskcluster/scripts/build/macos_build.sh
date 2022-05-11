@@ -82,8 +82,11 @@ cp -r ./macos/pkg/Distribution tmp || die
 cp -r ./macos/pkg/Resources tmp || die
 cd tmp || die
 
-[[ -d "$PROJECT_HOME/artifacts" ]] || mkdir -p $PROJECT_HOME/artifacts
-tar -czvf $PROJECT_HOME/artifacts/unsigned_artifact.tar.gz . || die
+# From checkout dir to actual task base directory
+TASK_HOME=$(dirname "${MOZ_FETCHES_DIR}" )
+rm -rf "${TASK_HOME}/artifacts"
+mkdir -p "${TASK_HOME}/artifacts"
+tar -czvf "${TASK_HOME}/artifacts/unsigned_artifact.tar.gz" . || die
 cd .. || die
 rm -rf tmp || die
 
