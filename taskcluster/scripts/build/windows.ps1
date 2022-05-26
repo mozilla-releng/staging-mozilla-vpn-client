@@ -4,7 +4,8 @@
 
 
 $REPO_ROOT_PATH =resolve-path "$PSScriptRoot/../../../"
-$FETCHES_PATH =resolve-path "$REPO_ROOT_PATH/../../fetches"
+$TASK_WORKDIR =resolve-path "$REPO_ROOT_PATH/../../"
+$FETCHES_PATH =resolve-path "$TASK_WORKDIR/fetches"
 $QTPATH =resolve-path "$FETCHES_PATH/QT_OUT/bin/"
 
 # Prep Env:
@@ -35,18 +36,19 @@ python3 ./scripts/utils/generate_glean.py
 python3 ./scripts/utils/import_languages.py
 
 ./scripts/windows/compile.bat --nmake
-nmake install 
+nmake install
 
 Write-Output "Writing Artifacts"
 
-New-Item -Path $REPO_ROOT_PATH/artifacts -ItemType "directory"
-Copy-Item -Path windows/installer/x64/MozillaVPN.msi -Destination ./artifacts/MozillaVPN.msi
-Copy-Item -Path MozillaVPN.pdb -Destination ./artifacts/MozillaVPN.pdb
+New-Item -ItemType Directory -Path "$TASK_WORKDIR/artifacts" -Force
+$ARTIFACTS_PATH =resolve-path "$TASK_WORKDIR/artifacts"
+Copy-Item -Path windows/installer/x64/MozillaVPN.msi -Destination "$ARTIFACTS_PATH/MozillaVPN.msi"
+Copy-Item -Path MozillaVPN.pdb -Destination "$ARTIFACTS_PATH/MozillaVPN.pdb"
 
-Compress-Archive -Path unsigned/* -Destination $REPO_ROOT_PATH/artifacts/unsigned.zip
+Compress-Archive -Path unsigned/* -Destination $ARTIFACTS_PATH/MozillaVPN.zip
 
-Write-Output "Artifacts Location: $REPO_ROOT_PATH/artifacts"
-Get-ChildItem -Path $REPO_ROOT_PATH/artifacts
+Write-Output "Artifacts Location: $ARTIFACTS_PATH"
+Get-ChildItem -Path $ARTIFACTS_PATH
 
 
 # mspdbsrv might be stil running after the build, so we need to kill it
@@ -56,4 +58,4 @@ Stop-Process -Name "vctip.exe" -Force -ErrorAction SilentlyContinue
 
 Write-Output "Open Processes:"
 
-wmic process get description,executablepath 
+wmic process get description,executablepath
