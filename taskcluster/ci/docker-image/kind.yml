@@ -29,6 +29,8 @@ jobs:
     lint:
         parent: base
         symbol: I(lint)
+    fedora:
+        symbol: I(fedora)
     wasm:
         parent: base
         symbol: I(wasm)

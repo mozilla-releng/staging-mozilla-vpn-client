@@ -38,3 +38,31 @@ jobs:
             kind: build
             tier: 1
             platform: windows/x86_64
+
+    rpm:
+        description: repackage mozillavpn rpm
+        run-on-tasks-for: [github-push, github-release]
+        fetches:
+            signing:
+                - artifact: target.tar.gz
+                  dest: fetches
+        dependencies:
+            signing: signing-linux/opt
+        if-dependencies: [signing]
+        worker-type: b-linux
+        worker:
+            max-run-time: 3600
+            chain-of-trust: true
+            docker-image: {in-tree: fedora}
+        release-artifacts: [mozillavpn.rpm]
+        attributes:
+            build-type: linux/opt
+        run:
+            using: run-task
+            cwd: '{checkout}'
+            command: ./taskcluster/scripts/package/rpm.sh
+        treeherder:
+            symbol: rpk(rpm)
+            kind: build
+            tier: 1
+            platform: linux/opt
