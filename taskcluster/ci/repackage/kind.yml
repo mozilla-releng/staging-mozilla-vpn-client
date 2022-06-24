@@ -45,7 +45,7 @@ jobs:
         fetches:
             signing:
                 - artifact: target.tar.gz
-                  dest: fetches
+                  dest: package
         dependencies:
             signing: signing-linux/opt
         if-dependencies: [signing]
@@ -59,8 +59,8 @@ jobs:
             build-type: linux/opt
         run:
             using: run-task
-            cwd: '{checkout}'
-            command: [bash, ./taskcluster/scripts/package/rpm.sh]
+            cwd: '/builds/worker/fetches/package'
+            command: [bash, /builds/worker/checkouts/vcs/taskcluster/scripts/package/rpm.sh]
         treeherder:
             symbol: rpk(rpm)
             kind: build

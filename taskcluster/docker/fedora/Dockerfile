@@ -5,7 +5,8 @@ RUN mkdir /builds && \
     useradd -d /builds/worker -s /bin/bash -m worker && \
     chown worker:worker /builds/worker && \
     mkdir /builds/worker/artifacts && \
-    chown worker:worker /builds/worker/artifacts
+    chown worker:worker /builds/worker/artifacts && \
+    echo "worker    ALL=(ALL)   NOPASSWD:    ALL" >> /etc/sudoers.d/worker
 
 RUN mkdir -p /builds/worker/artifacts
 

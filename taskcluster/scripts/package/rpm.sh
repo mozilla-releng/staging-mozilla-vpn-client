@@ -7,11 +7,8 @@ set -e
 # Output directory for task
 mkdir -p /builds/worker/artifacts/
 
-# Uncompress files
-tar xvf target.tar.gz
-
 # Setup build
-yum-builddep -y mozillavpn.spec
+sudo yum-builddep -y mozillavpn.spec
 
 # Build RPM
 rpmbuild -D "_topdir $(pwd)" -D "_sourcedir $(pwd)" -ba mozillavpn.spec
@@ -20,4 +17,3 @@ rpmbuild -D "_topdir $(pwd)" -D "_sourcedir $(pwd)" -ba mozillavpn.spec
 cp \
  $(find RPMS/ -name '*.rpm' -not -name '*debug*' | head -n 1) \
  /builds/worker/artifacts/mozillavpn.rpm
- 
