@@ -60,7 +60,7 @@ jobs:
         run:
             using: run-task
             cwd: '{checkout}'
-            command: ./taskcluster/scripts/package/rpm.sh
+            command: [bash, ./taskcluster/scripts/package/rpm.sh]
         treeherder:
             symbol: rpk(rpm)
             kind: build
