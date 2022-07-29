@@ -6,7 +6,7 @@ loader: mozillavpn_taskgraph.loader.multi_dep:loader
 
 transforms:
     - mozillavpn_taskgraph.transforms.multi_dep:transforms
-#    - mozillavpn_taskgraph.transforms.beetmover:transforms
+    - mozillavpn_taskgraph.transforms.beetmover:transforms
     - taskgraph.transforms.task:transforms
 
 group-by: build-type
@@ -17,6 +17,16 @@ only-for-build-types:
 kind-dependencies:
     - signing
 
+primary-dependency: signing
+
 job-template:
     worker-type: beetmover
     run-on-tasks-for: [action, github-release]
+    treeherder:
+        # What is this?
+        job-symbol: Bb
+        kind: build  # only build is allowed?
+        tier: 1
+        platform:
+            by-build-type:
+                macos/opt: macos/all
