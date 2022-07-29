@@ -14,7 +14,6 @@ transforms = TransformSequence()
 def add_beetmover_worker_config(config, tasks):
     for task in tasks:
         app_name = "vpn"
-        hash_type = "sha512"
         attributes = task["attributes"]
         worker_type = task["worker-type"]
         task_name = task["name"]

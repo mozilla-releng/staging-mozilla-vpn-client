@@ -23,9 +23,8 @@ job-template:
     worker-type: beetmover
     run-on-tasks-for: [action, github-release]
     treeherder:
-        # What is this?
-        job-symbol: Bb
-        kind: build  # only build is allowed?
+        job-symbol: BM
+        kind: build
         tier: 1
         platform:
             by-build-type:
