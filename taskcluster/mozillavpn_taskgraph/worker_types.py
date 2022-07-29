@@ -149,4 +149,3 @@ def build_scriptworker_beetmover_payload(config, task, task_def):
         "upstreamArtifacts": worker["upstream-artifacts"],
         "upload_date": int(datetime.now().timestamp()),
     }
-    breakpoint()
