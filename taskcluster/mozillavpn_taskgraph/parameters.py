@@ -30,3 +30,16 @@ def get_decision_parameters(graph_config, parameters):
 
     pr_number = os.environ.get("MOZILLAVPN_PULL_REQUEST_NUMBER", None)
     parameters["pull_request_number"] = None if pr_number is None else int(pr_number)
+
+    parameters["existing_tasks"] = {
+        "build-android-arm64/debug": "EdMeHxgPSyCU_a4oHPSCPA",
+        "build-android-armv7/debug": "MeanU8ewmSQCSoaY0PnrlhQ",
+        "build-android-x64/debug": "a_MV7swEQK-TQ5otPwUcOQ",
+        "build-android-x86/debug": "YFVgUS3VSN63rV2BC7sd3Q",
+        "build-ios/debug": "R9h3Vbw-RQK2NSbotFc60A",
+        "build-linux/opt": "LvJ3BFX9Sw--qtL92Gce3w",
+        "build-macos/opt": "aHKPXSztQ3-h_r2X3O-tSQ",
+        "build-wasm/opt": "GsMtW8ohQC-vLE0jbbz63Q",
+        "build-windows/opt": "AYzjU7bbTKSMC0r7DV7_-A",
+        "signing-macos/opt": "Hm4fAljHQiG1-vl6AoGQPA",
+    }
