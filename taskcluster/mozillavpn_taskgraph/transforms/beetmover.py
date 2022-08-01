@@ -31,15 +31,25 @@ def add_beetmover_worker_config(config, tasks):
         task_description = f"Upload the {app_name} {app_version} {build_type} build artifacts to {candidates_path}"
         branch = config.params["head_ref"]
         upstream_artifacts = task["worker"]["upstream-artifacts"]
+
+        def get_artifact_path(path):
+            # iscript turns .tar.gz files into signed .pkg files
+            if build_os == "macos":
+                return path.replace(".tar.gz", ".pkg")
+            return path
+
         artifact_map = []
         for artifact in upstream_artifacts:
             artifact_map.append(
                 {
                     "taskId": artifact["taskId"],
                     "paths": {
-                        path: {
+                        get_artifact_path(path): {
                             "destinations": [
-                                os.path.join(destination_path, os.path.basename(path))
+                                os.path.join(
+                                    destination_path,
+                                    os.path.basename(get_artifact_path(path)),
+                                )
                                 for destination_path in destination_paths
                             ]
                         }
@@ -47,6 +57,7 @@ def add_beetmover_worker_config(config, tasks):
                     },
                 }
             )
+
         worker = {
             "upstream-artifacts": upstream_artifacts,
             "action": "direct-push-to-bucket",
