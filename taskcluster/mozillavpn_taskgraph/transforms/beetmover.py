@@ -65,7 +65,7 @@ def add_beetmover_worker_config(config, tasks):
                     },
                 }
             )
-        breakpoint()
+
         worker = {
             "upstream-artifacts": upstream_artifacts,
             "action": "direct-push-to-bucket",
