@@ -22,6 +22,10 @@ primary-dependency: signing
 job-template:
     worker-type: beetmover
     run-on-tasks-for: [action, github-release]
+    bucket:
+        by-level:
+            "3": "release"
+            default: "dep"
     treeherder:
         job-symbol: BM
         kind: build

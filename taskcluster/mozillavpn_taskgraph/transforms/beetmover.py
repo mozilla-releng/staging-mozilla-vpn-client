@@ -6,6 +6,7 @@
 import os.path
 
 from taskgraph.transforms.base import TransformSequence
+from taskgraph.util.schema import resolve_keyed_by
 
 transforms = TransformSequence()
 
@@ -13,11 +14,19 @@ transforms = TransformSequence()
 @transforms.add
 def add_beetmover_worker_config(config, tasks):
     for task in tasks:
-        app_name = "vpn"
-        attributes = task["attributes"]
         worker_type = task["worker-type"]
         task_name = task["name"]
         task_label = f"{worker_type}-{task_name}"
+        resolve_keyed_by(
+            task,
+            "bucket",
+            item_name=task_label,
+            **{"level": config.params["level"]},
+        )
+        bucket = task["bucket"]
+        action = "direct-push-to-bucket"
+        app_name = "vpn"
+        attributes = task["attributes"]
         run_on_tasks_for = task["run-on-tasks-for"]
         build_id = config.params["moz_build_date"]
         build_type = attributes["build-type"]
@@ -42,8 +51,9 @@ def add_beetmover_worker_config(config, tasks):
                 **upstream_artifact,
                 "paths": [
                     get_artifact_path(path) for path in upstream_artifact["paths"]
-                ]
-            } for upstream_artifact in task["worker"]["upstream-artifacts"]
+                ],
+            }
+            for upstream_artifact in task["worker"]["upstream-artifacts"]
         ]
 
         artifact_map = []
@@ -68,7 +78,8 @@ def add_beetmover_worker_config(config, tasks):
 
         worker = {
             "upstream-artifacts": upstream_artifacts,
-            "action": "direct-push-to-bucket",
+            "bucket": bucket,
+            "action": action,
             "release-properties": {
                 "app-name": app_name,
                 "app-version": app_version,

@@ -98,6 +98,7 @@ def build_push_apk_payload(config, task, task_def):
 @payload_builder(
     "scriptworker-beetmover",
     schema={
+        Required("bucket"): str,
         Required("action"): str,
         Required("artifact-map"): [
             {
@@ -142,6 +143,15 @@ def build_scriptworker_beetmover_payload(config, task, task_def):
         "hashType": worker["release-properties"].get("hash-type", "sha512"),
         "platform": worker["release-properties"]["platform"],
     }
+    scope_prefix = "project:mozillavpn:releng:beetmover:"
+    task_def["scopes"] = [
+        "{prefix}bucket:{bucket_scope}".format(
+            prefix=scope_prefix, bucket_scope=worker["bucket"]
+        ),
+        "{prefix}action:{action_scope}".format(
+            prefix=scope_prefix, action_scope=worker["action"]
+        ),
+    ]
     task_def["payload"] = {
         "maxRunTime": 600,
         "artifactMap": artifact_map,
