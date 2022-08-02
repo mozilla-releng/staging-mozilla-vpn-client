@@ -24,7 +24,7 @@ def add_beetmover_worker_config(config, tasks):
             **{"level": config.params["level"]},
         )
         bucket = task["bucket"]
-        action = "direct-push-to-bucket"
+        action = "push-to-nightly"  # Should we add a new behavior? If we are doind balrog, then yes?
         app_name = "vpn"
         attributes = task["attributes"]
         run_on_tasks_for = task["run-on-tasks-for"]
