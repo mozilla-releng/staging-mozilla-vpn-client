@@ -128,7 +128,7 @@ def build_push_apk_payload(config, task, task_def):
     },
 )
 def build_scriptworker_beetmover_payload(config, task, task_def):
-    task_def["tags"]["worker-implementation"] = "scriptworker-beetmover"
+    task_def["tags"]["worker-implementation"] = "scriptworker"
     worker = task["worker"]
     artifact_map = worker["artifact-map"]
     for map_ in artifact_map:
