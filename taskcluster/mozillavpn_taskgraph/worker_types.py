@@ -135,6 +135,8 @@ def build_scriptworker_beetmover_payload(config, task, task_def):
         map_["locale"] = "multi"
         for path_config in map_["paths"].values():
             path_config["checksums_path"] = ""
+    for artifact in worker["upstream-artifacts"]:
+        artifact["locale"] = "multi"
     release_properties = {
         "appName": worker["release-properties"]["app-name"],
         "appVersion": worker["release-properties"]["app-version"],
