@@ -21,6 +21,7 @@
 #include <QJsonObject>
 #include <QFileInfo>
 #include <QResource>
+#include <QQmlEngine>
 #include <QSaveFile>
 #include <QStandardPaths>
 
@@ -595,4 +596,30 @@ Addon* AddonManager::pick(QJSValue filterCallback) const {
   }
 
   return nullptr;
+}
+
+QJSValue AddonManager::reduce(QJSValue callback, QJSValue initialValue) const {
+  if (!callback.isCallable()) {
+    logger.error() << "AddonManager.reduce must receive a callable JS value";
+    return initialValue;
+  }
+
+  QJSEngine* engine = QmlEngineHolder::instance()->engine();
+  Q_ASSERT(engine);
+
+  QJSValue reducedValue = initialValue;
+
+  for (QMap<QString, AddonData>::const_iterator i(m_addons.constBegin());
+       i != m_addons.constEnd(); ++i) {
+    if (!i.value().m_addon || !i.value().m_addon->enabled()) {
+      continue;
+    }
+
+    QJSValueList arguments;
+    arguments.append(engine->toScriptValue(i.value().m_addon));
+    arguments.append(reducedValue);
+    reducedValue = callback.call(arguments);
+  }
+
+  return reducedValue;
 }
