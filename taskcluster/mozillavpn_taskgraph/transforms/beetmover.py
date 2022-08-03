@@ -24,7 +24,8 @@ def add_beetmover_worker_config(config, tasks):
             **{"level": config.params["level"]},
         )
         bucket = task["bucket"]
-        action = "push-to-nightly"  # Should we add a new behavior? If we are doind balrog, then yes?
+        # When we add balrog releases we will need to add an action to beetmoverscript
+        action = "push-to-nightly"
         app_name = "vpn"
         attributes = task["attributes"]
         run_on_tasks_for = task["run-on-tasks-for"]
@@ -37,7 +38,8 @@ def add_beetmover_worker_config(config, tasks):
             "pub", app_name, "candidates", app_version, build_id, build_os
         )
         destination_paths = [candidates_path]
-        task_description = f"Upload the {app_name} {app_version} {build_type} build artifacts to {candidates_path}"
+        archive_url = "https://ftp.stage.mozaws.net/" if config.params["level"] != 3 else "https://ftp.mozilla.org/"
+        task_description = f"This {worker_type} task will upload a release candidate for v{app_version} of the {app_name} on {build_os} to {archive_url}{candidates_path}"
         branch = config.params["head_ref"]
 
         def get_artifact_path(path):
