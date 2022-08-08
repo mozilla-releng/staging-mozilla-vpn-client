@@ -41,7 +41,7 @@ def add_beetmover_worker_config(config, tasks):
                 "taskId": {
                     "task-reference": f"<{dep}>"
                 },
-                "taskType": f"{dep}",
+                "taskType": "scriptworker",
                 "paths": [release_artifact["name"] for release_artifact in task["attributes"]["release-artifacts"]]
             }
         )
