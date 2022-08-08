@@ -12,6 +12,9 @@ transforms:
 jobs:
     macos:
         worker-type: beetmover
+        worker:
+            chain-of-trust: true
+            max-run-time: 3600
         run-on-tasks-for: [github-release, action:release-promotion]
         release-artifacts: [MozillaVPN.pkg]
         dependencies:
@@ -26,6 +29,9 @@ jobs:
             platform: macos/opt
     windows:
         worker-type: beetmover
+        worker:
+            chain-of-trust: true
+            max-run-time: 3600
         run-on-tasks-for: [github-release, action:release-promotion]
         release-artifacts: [MozillaVPN.msi]
         dependencies:
