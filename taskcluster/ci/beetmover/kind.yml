@@ -9,11 +9,6 @@ transforms:
     - mozillavpn_taskgraph.transforms.beetmover:transforms
     - taskgraph.transforms.task:transforms
 
-group-by: build-type
-
-only-for-build-types:
-    - macos/opt
-
 jobs:
     macos:
         worker-type: beetmover
@@ -29,3 +24,17 @@ jobs:
             kind: build
             tier: 1
             platform: macos/opt
+    windows:
+        worker-type: beetmover
+        run-on-tasks-for: [github-release, action:release-promotion]
+        release-artifacts: [MozillaVPN.msi]
+        dependencies:
+            repackage-signing: repackage-signing-msi
+        if-dependencies: [repackage-signing]
+        attributes:
+            build-type: windows/opt
+        treeherder:
+            symbol: BM(windows)
+            kind: build
+            tier: 1
+            platform: windows/x86_64
