@@ -40,7 +40,6 @@ def get_decision_parameters(graph_config, parameters):
         "build-android-x64/debug": "OaoEaXKqSgWmYvJ7J5XboA",
         "build-android-armv7/debug": "f57lFIj2QUKst9XELcMwRQ",
         "build-macos/opt": "IvatMZ1fQ4yDeDRdeerROg",
-        "signing-macos/opt": "Ijlf_IY4RNus3Q7NWq9-qw",
         "build-android-arm64/debug": "KVuraRN9TfWxjC3k_JUfyQ",
         "build-ios/debug": "ckYCm8qLS7CfCKhDxc9qRw",
         "signing-linux/opt": "JfnCn3v6Rei1iSarkZuB7g",
