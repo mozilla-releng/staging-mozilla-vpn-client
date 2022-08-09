@@ -41,4 +41,8 @@ def get_decision_parameters(graph_config, parameters):
         "build-ios/debug": "HOXynK56QCWEH0zTCnKAPg",
         "signing-linux/opt": "cRYUFpKEQ6GLRV-BUwLSnw",
         "build-linux/opt": "Xtn072RKR4O01rFmI-ASvg",
+        "signing-macos/opt": "fzLOQWT3TSSkIJiaMlon1Q",
+        "signing-windows/opt": "HZYGUI2ZRg-kYSNQ1Xt8nA",
+        "repackage-signing-msi": "LBVX4AC-SMGJpITuTC19Fg",
+        "repackage-msi": "YBp4B7pcTXanvJ79qjA1AA"
     }
