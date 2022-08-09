@@ -22,7 +22,7 @@ jobs:
           tier: 1
           platform: addons/all
       worker-type: b-linux
-      requires-level: 3
+      requires-level: 1
       add-index-routes: addons # Name of the index
       scopes:
          - 'secrets:get:project/mozillavpn/tokens'
