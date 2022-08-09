@@ -9,6 +9,7 @@ treeherder:
         'lint': 'Linting tasks'
         'Fetch': 'Fetching Tasks'
         'TL': 'Toolchain Tasks'
+        'rpk': 'Re-Package Tasks'
 
 task-priority:
     by-project:
@@ -91,3 +92,8 @@ workers:
             implementation: scriptworker-pushapk
             os: scriptworker
             worker-type: 'mozillavpn-{level}-pushapk'
+        beetmover:
+            provisioner: scriptworker-k8s
+            implementation: scriptworker-beetmover
+            os: scriptworker
+            worker-type: 'mozillavpn-{level}-beetmover'
