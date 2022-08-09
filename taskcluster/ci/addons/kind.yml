@@ -27,4 +27,4 @@ jobs:
           using: run-task
           use-caches: true
           cwd: '{checkout}'
-          command: ./taskcluster/scripts/addons/build.sh
+          command: ./taskcluster/scripts/build/addons.sh
