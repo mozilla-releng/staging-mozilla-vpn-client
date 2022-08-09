@@ -30,15 +30,15 @@ def get_decision_parameters(graph_config, parameters):
 
     pr_number = os.environ.get("MOZILLAVPN_PULL_REQUEST_NUMBER", None)
     parameters["pull_request_number"] = None if pr_number is None else int(pr_number)
-    # parameters["existing_tasks"] = {
-    #     "build-wasm/opt": "EY0UkEMsQsi-8NrSuTCXuA",
-    #     "build-android-x86/debug": "RAGq5PNMRw2bYa-Hy5YQdA",
-    #     "build-android-x64/debug": "Gl4v7eOzRIStoVtpZIX-PQ",
-    #     "build-android-arm64/debug": "HSDVE4e_STup1Fv_4TSapg",
-    #     "build-android-armv7/debug": "FVQZTBUSR7GoSA5nNP90iA",
-    #     "build-macos/opt": "O1-OpQclSgWS1ej2NMsnWg",
-    #     "build-windows/opt": "SmMUf1M_QzS1aiILD7KxxA",
-    #     "build-ios/debug": "HOXynK56QCWEH0zTCnKAPg",
-    #     "signing-linux/opt": "cRYUFpKEQ6GLRV-BUwLSnw",
-    #     "build-linux/opt": "Xtn072RKR4O01rFmI-ASvg",
-    # }
+    parameters["existing_tasks"] = {
+        "build-wasm/opt": "EY0UkEMsQsi-8NrSuTCXuA",
+        "build-android-x86/debug": "RAGq5PNMRw2bYa-Hy5YQdA",
+        "build-android-x64/debug": "Gl4v7eOzRIStoVtpZIX-PQ",
+        "build-android-arm64/debug": "HSDVE4e_STup1Fv_4TSapg",
+        "build-android-armv7/debug": "FVQZTBUSR7GoSA5nNP90iA",
+        "build-macos/opt": "O1-OpQclSgWS1ej2NMsnWg",
+        "build-windows/opt": "SmMUf1M_QzS1aiILD7KxxA",
+        "build-ios/debug": "HOXynK56QCWEH0zTCnKAPg",
+        "signing-linux/opt": "cRYUFpKEQ6GLRV-BUwLSnw",
+        "build-linux/opt": "Xtn072RKR4O01rFmI-ASvg",
+    }
