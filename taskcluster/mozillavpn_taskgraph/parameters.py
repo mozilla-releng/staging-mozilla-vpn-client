@@ -44,5 +44,7 @@ def get_decision_parameters(graph_config, parameters):
         "signing-macos/opt": "fzLOQWT3TSSkIJiaMlon1Q",
         "signing-windows/opt": "HZYGUI2ZRg-kYSNQ1Xt8nA",
         "repackage-signing-msi": "LBVX4AC-SMGJpITuTC19Fg",
-        "repackage-msi": "YBp4B7pcTXanvJ79qjA1AA"
+        "repackage-msi": "YBp4B7pcTXanvJ79qjA1AA",
+        "push-addon-stage/deploy": "Rnm9Nx36SKGY1h_DVMdx4w",
+        "addons-bundle": "Plie_i2XQ5W9Xvb0ll7s-Q",  # this used to be called build-addons?
     }
