@@ -54,7 +54,7 @@ jobs:
         worker:
             chain-of-trust: true
             max-run-time: 3600
-        # run-on-tasks-for: [github-release, action:release-promotion]
+        run-on-tasks-for: [github-push, action:release-promotion]
         release-artifacts: []
         # This will come from the manifest?
         # We will probably need a custom beetmover behavior for addons
