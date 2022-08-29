@@ -22,55 +22,60 @@ def add_beetmover_worker_config(config, tasks):
         bucket = "release" if is_relpro else "dep"
         build_id = config.params["moz_build_date"]
         build_type = task["attributes"]["build-type"]
-        build_os = os.path.dirname(build_type)
-        app_version = config.params["version"]
+        app_version = "N/A"
         candidates_path = os.path.join(
-            "pub", app_name, "candidates", app_version, build_id, build_os
+            "pub",
+            app_name,
+            "addons",
+            "candidates",
+            build_id,
         )
-        # destination_paths = [candidates_path]
+        destination_paths = [candidates_path]
         archive_url = (
             "https://ftp.mozilla.org/" if is_relpro else "https://ftp.stage.mozaws.net/"
         )
-        task_description = f"This {worker_type} task will upload a {build_os} release candidate for v{app_version} to {archive_url}{candidates_path}/"
+        task_description = f"This {worker_type} task will upload {app_name} addons release candidates to {archive_url}{candidates_path}/"
+        # the beetmover script behavior should override latest?
         branch = config.params["head_ref"]
 
-        # upstream_artifacts = []
-        # for dep in task["dependencies"]:
-        #     upstream_artifacts.append(
-        #         {
-        #             "taskId": {"task-reference": f"<{dep}>"},
-        #             "taskType": "scriptworker",
-        #             "paths": [
-        #                 release_artifact["name"]
-        #                 for release_artifact in task["attributes"]["release-artifacts"]
-        #             ],
-        #         }
-        #     )
+        # could use the manifest files so beetmover knows what it's supposed to beetmove?
+        upstream_artifacts = []
+        for dep in task["dependencies"]:
+            upstream_artifacts.append(
+                {
+                    "taskId": {"task-reference": f"<{dep}>"},
+                    "taskType": "scriptworker",
+                    "paths": [
+                        release_artifact["name"]
+                        for release_artifact in task["attributes"]["release-artifacts"]
+                    ],
+                }
+            )
 
-        # artifact_map = []
-        # for artifact in upstream_artifacts:
-        #     artifact_map.append(
-        #         {
-        #             "taskId": artifact["taskId"],
-        #             "paths": {
-        #                 path: {
-        #                     "destinations": [
-        #                         os.path.join(
-        #                             destination_path,
-        #                             os.path.basename(path),
-        #                         )
-        #                         for destination_path in destination_paths
-        #                     ]
-        #                 }
-        #                 for path in artifact["paths"]
-        #             },
-        #         }
-        #     )
+        artifact_map = []
+        for artifact in upstream_artifacts:
+            artifact_map.append(
+                {
+                    "taskId": artifact["taskId"],
+                    "paths": {
+                        path: {
+                            "destinations": [
+                                os.path.join(
+                                    destination_path,
+                                    os.path.basename(path),
+                                )
+                                for destination_path in destination_paths
+                            ]
+                        }
+                        for path in artifact["paths"]
+                    },
+                }
+            )
 
         worker = {
-            "upstream-artifacts": [],  # ?
+            "upstream-artifacts": upstream_artifacts,
             "bucket": bucket,
-            "action": "push-to-candidates",
+            "action": "push-to-vpn-addons",
             "release-properties": {
                 "app-name": app_name,
                 "app-version": app_version,
@@ -78,7 +83,7 @@ def add_beetmover_worker_config(config, tasks):
                 "build-id": build_id,
                 "platform": build_type,
             },
-            "artifact-map": [],  # ?
+            "artifact-map": artifact_map,
         }
         task_def = {
             "name": task["name"],

@@ -5,6 +5,7 @@
 loader: taskgraph.loader.transform:loader
 
 transforms:
+    - mozillavpn_taskgraph.transforms.release_artifacts:transforms
     - mozillavpn_taskgraph.transforms.beetmover_addons:transforms
     - taskgraph.transforms.task:transforms
 
@@ -19,6 +20,7 @@ jobs:
             max-run-time: 3600
         # Should they beetmove on every push to main? or should it be say, for release branches only?
         run-on-tasks-for: [github-push, action:release-promotion]
+        release-artifacts: [addons/manifest.json]
         dependencies:
             push-addon: push-addon-stage/deploy
         if-dependencies: [push-addon]
