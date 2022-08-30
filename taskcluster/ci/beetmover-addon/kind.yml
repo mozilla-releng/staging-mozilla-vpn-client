@@ -1,0 +1,33 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+---
+loader: mozillavpn_taskgraph.loader.multi_dep:loader
+
+transforms:
+    # - mozillavpn_taskgraph.transforms.release_artifacts:transforms
+    - mozillavpn_taskgraph.transforms.multi_dep:transforms
+    - mozillavpn_taskgraph.transforms.beetmover_addon:transforms
+    - taskgraph.transforms.task:transforms
+
+kind-dependencies:
+    - push-addon  # The addons should be signed? In this push-addon task they are signed with a garbage-key
+
+primary-dependency: push-addon
+
+group-by: build-type
+
+job-template:
+    worker-type: beetmover
+    worker:
+        chain-of-trust: true
+        max-run-time: 3600
+    # Should they beetmove on every push to main? or should it be say, for release branches only?
+    run-on-tasks-for: [github-push, action:release-promotion]
+    attributes:
+        build-type: addons/all
+    treeherder:
+        job-symbol: BM(addons)
+        kind: build
+        tier: 1
+        platform: addons/all
