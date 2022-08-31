@@ -57,13 +57,15 @@ def add_beetmover_worker_config(config, tasks):
                 "path": f"/builds/worker/artifacts/addons/manifest.json",
             }
         )
-        release_artifacts.append(
-            {
-                "type": "file",
-                "name": f"public/build/addons/manifest.json.sign",
-                "path": f"/builds/worker/artifacts/addons/manifest.json.sign",
-            }
-        )
+        # TODO: add support for .sig file ext. in beetmoverscript
+        # https://github.com/mozilla-releng/scriptworker-scripts/blob/ee4f0be08dbf144c582d6025a8db56e06db38658/beetmoverscript/src/beetmoverscript/constants.py#L1
+        # release_artifacts.append(
+        #     {
+        #         "type": "file",
+        #         "name": f"public/build/addons/manifest.json.sign",
+        #         "path": f"/builds/worker/artifacts/addons/manifest.json.sig",
+        #     }
+        # )
         addons = set(os.listdir("addons"))
         addons.remove("examples")
 
