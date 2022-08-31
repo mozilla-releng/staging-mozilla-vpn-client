@@ -45,6 +45,6 @@ def get_decision_parameters(graph_config, parameters):
         "signing-windows/opt": "HZYGUI2ZRg-kYSNQ1Xt8nA",
         "repackage-signing-msi": "LBVX4AC-SMGJpITuTC19Fg",
         "repackage-msi": "YBp4B7pcTXanvJ79qjA1AA",
-        "push-addon-stage/deploy": "Rnm9Nx36SKGY1h_DVMdx4w",
+        "push-addon-stage/deploy": "N_Iy5XbgTXOi-aJrwwf_ww",
         "addons-bundle": "fA00WPg2SW674fyRtYxF6A",
     }
