@@ -81,7 +81,7 @@ def add_beetmover_worker_config(config, tasks):
             upstream_artifacts.append(
                 {
                     "taskId": {"task-reference": f"<{dep}>"},
-                    "taskType": "scriptworker",
+                    "taskType": "build",  # TODO: update to signing once we have a signing-addons task
                     "paths": [
                         release_artifact["name"]
                         for release_artifact in release_artifacts
@@ -115,7 +115,7 @@ def add_beetmover_worker_config(config, tasks):
             "action": "push-to-candidates",
             "release-properties": {
                 "app-name": app_name,
-                "app-version": "",
+                "app-version": "N/A",
                 "branch": branch,
                 "build-id": build_id,
                 "platform": build_type,
