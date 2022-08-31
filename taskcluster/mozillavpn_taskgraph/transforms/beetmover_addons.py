@@ -15,32 +15,33 @@ def add_beetmover_worker_config(config, tasks):
     for task in tasks:
         app_name = "vpn"
         worker_type = task["worker-type"]
-        is_relpro = (
-            config.params["level"] == "3"
-            and config.params["tasks_for"] in task["run-on-tasks-for"]
-        )
-        bucket = "release" if is_relpro else "dep"
+        # is_relpro = (
+        #     config.params["level"] == "3"
+        #     and config.params["tasks_for"] in task["run-on-tasks-for"]
+        # )
+        # bucket = "release" if is_relpro else "dep"
+        bucket = "dep"
         build_id = config.params["moz_build_date"]
         build_type = task["attributes"]["build-type"]
-        app_version = "N/A"
         candidates_path = os.path.join(
             "pub",
             app_name,
-            "addons",
             "candidates",
+            "addons",
             build_id,
         )
         latest_path = os.path.join(
             "pub",
             app_name,
-            "addons",
             "candidates",
+            "addons",
             "latest",  # latest candidates? or is this just for releases?
         )
         destination_paths = [candidates_path, latest_path]
-        archive_url = (
-            "https://ftp.mozilla.org/" if is_relpro else "https://ftp.stage.mozaws.net/"
-        )
+        # archive_url = (
+        #     "https://ftp.mozilla.org/" if is_relpro else "https://ftp.stage.mozaws.net/"
+        # )
+        archive_url = "https://ftp.stage.mozaws.net/"
         task_description = f"This {worker_type} task will upload {app_name} addons release candidates to {archive_url}{candidates_path}/"
         # the beetmover script behavior should override latest?
         branch = config.params["head_ref"]
@@ -64,9 +65,6 @@ def add_beetmover_worker_config(config, tasks):
             }
         )
         addons = set(os.listdir("addons"))
-        # examples was not in this task https://firefox-ci-tc.services.mozilla.com/tasks/Rnm9Nx36SKGY1h_DVMdx4w#artifacts
-        # but it might be there now that that was added?
-        # TODO: remove this to run against real tasks
         addons.remove("examples")
 
         for addon in addons:
@@ -75,13 +73,6 @@ def add_beetmover_worker_config(config, tasks):
                     "type": "file",
                     "name": f"public/build/addons/{addon}.rcc",
                     "path": f"/builds/worker/artifacts/addons/{addon}.rcc",
-                }
-            )
-            release_artifacts.append(
-                {
-                    "type": "file",
-                    "name": f"public/build/addons/{addon}.ts",
-                    "path": f"/builds/worker/artifacts/addons/{addon}.ts",
                 }
             )
 
@@ -124,7 +115,7 @@ def add_beetmover_worker_config(config, tasks):
             "action": "push-to-candidates",
             "release-properties": {
                 "app-name": app_name,
-                "app-version": app_version,
+                "app-version": "",
                 "branch": branch,
                 "build-id": build_id,
                 "platform": build_type,
