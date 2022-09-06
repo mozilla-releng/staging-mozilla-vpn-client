@@ -54,7 +54,7 @@ jobs:
         worker:
             chain-of-trust: true
             max-run-time: 3600
-        run-on-tasks-for: [github-push]
+        run-on-tasks-for: [action:release-promotion]
         release-artifacts:
             - guide_01_how_to_vpn.rcc
             - guide_02_is_my_vpn_working_correctly.rcc
@@ -82,7 +82,7 @@ jobs:
         worker:
             chain-of-trust: true
             max-run-time: 3600
-        run-on-tasks-for: [github-push]
+        run-on-tasks-for: [action:release-promotion]
         release-artifacts:
             - manifest.json
             - manifest.json.sig
