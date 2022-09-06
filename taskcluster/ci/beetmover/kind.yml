@@ -68,7 +68,6 @@ jobs:
             - tutorial_02_connect_on_startup.rcc
         dependencies:
             build: build-addons-bundle
-            signing: signing-addons-bundle
         if-dependencies: [build, signing]
         attributes:
             build-type: addons/opt
@@ -87,7 +86,6 @@ jobs:
             - manifest.json
             - manifest.json.sig
         dependencies:
-            build: build-addons-bundle
             signing: signing-addons-bundle
         if-dependencies: [build, signing]
         attributes:
