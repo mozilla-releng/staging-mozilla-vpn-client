@@ -27,7 +27,7 @@ extend_parameters_schema(
 
 @_target_task("test")
 def target_tasks_test(full_task_graph, parameters, graph_config):
-    return ["build-addons-bundle", "signing-addons-bundle", "beetmover-addons-bundle", "beetmover-addons-manifest"]
+    return ["build-addons-bundle", "signing-addons-bundle"]
 
 
 def get_decision_parameters(graph_config, parameters):
