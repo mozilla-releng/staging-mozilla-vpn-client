@@ -10,6 +10,7 @@ transforms:
     - taskgraph.transforms.task:transforms
 
 kind-dependencies:
+    - build
     - signing
     - repackage-signing
 
@@ -68,7 +69,7 @@ jobs:
             - tutorial_02_connect_on_startup.rcc
         dependencies:
             build: build-addons-bundle
-        if-dependencies: [build, signing]
+        if-dependencies: [build]
         attributes:
             build-type: addons/opt
         treeherder:
@@ -87,7 +88,7 @@ jobs:
             - manifest.json.sig
         dependencies:
             signing: signing-addons-bundle
-        if-dependencies: [build, signing]
+        if-dependencies: [signing]
         attributes:
             build-type: addons/opt
         treeherder:
