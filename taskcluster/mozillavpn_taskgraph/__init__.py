@@ -24,7 +24,7 @@ def register(graph_config):
             "parameters",
             "target_tasks",
             "worker_types",
-            "actions",
+            "actions.release_promotion",
         ]
     )
 
