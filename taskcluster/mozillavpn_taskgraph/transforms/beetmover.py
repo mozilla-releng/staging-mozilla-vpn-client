@@ -41,26 +41,11 @@ def add_beetmover_worker_config(config, tasks):
 
         def get_task_description():
             if build_type == "addons/opt":
-                return f"This {worker_type} task will upload addon release candidates to {archive_url}{candidates_path}/"
+                return f"This {worker_type} task will upload the {task['name']} to {archive_url}{candidates_path}/"
             return f"This {worker_type} task will upload a {build_os} release candidate for v{app_version} to {archive_url}{candidates_path}/"
 
         task_description = get_task_description()
         branch = config.params["head_ref"]
-
-        def get_release_artifacts(dep):
-            if build_type == "addons/opt" and dep == "build":
-                return [
-                    artifact
-                    for artifact in task["attributes"]["release-artifacts"]
-                    if artifact["name"].endswith(".rcc")
-                ]
-            if build_type == "addons/opt" and dep == "signing":
-                return [
-                    artifact
-                    for artifact in task["attributes"]["release-artifacts"]
-                    if artifact["name"].endswith(".sig") or artifact["name"].endswith(".json")
-                ]
-            return task["attributes"]["release-artifacts"]
 
         upstream_artifacts = []
         for dep in task["dependencies"]:
@@ -70,7 +55,7 @@ def add_beetmover_worker_config(config, tasks):
                     "taskType": dep if dep == "build" else "scriptworker",
                     "paths": [
                         release_artifact["name"]
-                        for release_artifact in get_release_artifacts(dep)
+                        for release_artifact in task["attributes"]["release-artifacts"]
                     ],
                 }
             )

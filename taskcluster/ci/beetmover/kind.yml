@@ -59,8 +59,6 @@ jobs:
             - guide_02_is_my_vpn_working_correctly.rcc
             - guide_03_adding_and_removing_devices.rcc
             - guide_04_connecting_external_devices.rcc
-            - manifest.json
-            - manifest.json.sig
             - message_survey_28d_desktop.rcc
             - message_survey_28d_mobile.rcc
             - message_survey_staging_10s.rcc
@@ -75,7 +73,27 @@ jobs:
         attributes:
             build-type: addons/opt
         treeherder:
-            symbol: BM(addons)
+            symbol: BM(addons-bundle)
+            kind: build
+            tier: 1
+            platform: addons/opt
+    addons-manifest:
+        worker-type: beetmover
+        worker:
+            chain-of-trust: true
+            max-run-time: 3600
+        run-on-tasks-for: [github-push]
+        release-artifacts:
+            - manifest.json
+            - manifest.json.sig
+        dependencies:
+            build: build-addons-bundle
+            signing: signing-addons-bundle
+        if-dependencies: [build, signing]
+        attributes:
+            build-type: addons/opt
+        treeherder:
+            symbol: BM(addons-manifest)
             kind: build
             tier: 1
             platform: addons/opt

@@ -27,7 +27,7 @@ extend_parameters_schema(
 
 @_target_task("test")
 def target_tasks_test(full_task_graph, parameters, graph_config):
-    return ["build-addons-bundle", "signing-addons-bundle", "beetmover-addons-bundle"]
+    return ["build-addons-bundle", "signing-addons-bundle", "beetmover-addons-bundle", "beetmover-addons-manifest"]
 
 
 def get_decision_parameters(graph_config, parameters):
@@ -38,3 +38,8 @@ def get_decision_parameters(graph_config, parameters):
     parameters["pull_request_number"] = None if pr_number is None else int(pr_number)
 
     parameters["target_tasks_method"] = "test"
+
+    parameters["existing_tasks"] = {
+        "build-addons-bundle": "PJ5mF6RCQTeOCpGIEgPUdQ",
+        "signing-addons-bundle": "J-blE2UCSTCfmqQi_VJ44Q",
+    }
