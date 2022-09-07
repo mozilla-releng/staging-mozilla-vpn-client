@@ -20,11 +20,11 @@ def register(graph_config):
     """
     _import_modules(
         [
+            "actions.release_promotion",
             "job",
             "parameters",
             "target_tasks",
             "worker_types",
-            "actions.release_promotion",
         ]
     )
 

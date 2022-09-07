@@ -26,7 +26,7 @@ def is_release_promotion_available(parameters):
     name="release-promotion",
     title="Mozilla VPN Release Promotion",
     symbol="${input.release_promotion_flavor}",
-    description="This action can ship the Mozilla VPN client. It can also promote or ship the client's addons. To promote or ship the addons set release_promotion_flavor to promote-addons or ship-addons",
+    description="Promote the Mozilla VPN client or its addons.",
     generic=False,
     order=500,
     context=[],
@@ -62,7 +62,7 @@ def is_release_promotion_available(parameters):
             "release_promotion_flavor": {
                 "type": "string",
                 "description": "The flavor of release promotion to perform.",
-                "default": "build",
+                "default": "promote-addons",
                 "enum": sorted(graph_config["release-promotion"]["flavors"].keys()),
             },
             "rebuild_kinds": {
