@@ -14,7 +14,7 @@ kind-dependencies:
     - signing
     - repackage-signing
 
-jobs:
+tasks:
     macos:
         worker-type: beetmover
         worker:
