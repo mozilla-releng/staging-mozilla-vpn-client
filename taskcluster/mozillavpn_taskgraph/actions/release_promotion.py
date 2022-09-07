@@ -24,9 +24,9 @@ def is_release_promotion_available(parameters):
 
 @register_callback_action(
     name="release-promotion",
-    title="Mozilla VPN Release Promotion",
+    title="Release Promotion",
     symbol="${input.release_promotion_flavor}",
-    description="Promote the Mozilla VPN client or its addons.",
+    description="Promote or ship the Mozilla VPN client or its addons.",
     generic=False,
     order=500,
     context=[],
