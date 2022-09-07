@@ -93,7 +93,7 @@ tasks:
         $if: >
             tasks_for in ["action", "cron"]
             || (tasks_for == "github-pull-request" && pullRequestAction in ["opened", "reopened", "synchronize"])
-            || (tasks_for == "github-push" && (head_branch == "refs/heads/main" || head_branch[:19] == "refs/heads/releases"))
+            || (tasks_for == "github-push" && (head_branch == "refs/heads/releases/gabriel/relpro-action" || head_branch == "refs/heads/main" || head_branch[:19] == "refs/heads/releases"))
             || (tasks_for == "github-release" && releaseAction == "published")
         then:
             $let:
@@ -154,6 +154,8 @@ tasks:
                 routes:
                     $flattenDeep:
                         - checks
+                        # staging release index
+                        - index.mozillavpn.v2.${project}.revision.${head_sha}.taskgraph.decision
                         - $if: 'level == "3"'
                           then:
                             - tc-treeherder.v2.${project}.${head_sha}

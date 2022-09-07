@@ -105,3 +105,7 @@ release-promotion:
             target-tasks-method: promote_addons
         ship-addons:
             target-tasks-method: ship_addons
+        promote-client:
+            target-tasks-method: promote_client
+        ship-client:
+            target-tasks-method: ship_client
