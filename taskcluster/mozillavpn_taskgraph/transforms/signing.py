@@ -20,6 +20,7 @@ PRODUCTION_SIGNING_BUILD_TYPES = [
     "linux/opt",
     "macos/opt",
     "windows/opt",
+    "addons/opt",
 ]
 
 SIGNING_BUILD_TYPES = PRODUCTION_SIGNING_BUILD_TYPES + [
