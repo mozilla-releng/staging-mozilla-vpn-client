@@ -39,7 +39,7 @@ def get_decision_parameters(graph_config, parameters):
 
     parameters["target_tasks_method"] = "test"
 
-    # parameters["existing_tasks"] = {
-    #     "build-addons-bundle": "PJ5mF6RCQTeOCpGIEgPUdQ",
-    #     "signing-addons-bundle": "J-blE2UCSTCfmqQi_VJ44Q",
-    # }
+    parameters["existing_tasks"] = {
+        "build-addons-bundle": "Luhqwo_GTgufwtqpNqP99A",
+        # "signing-addons-bundle": "J-blE2UCSTCfmqQi_VJ44Q",
+    }
