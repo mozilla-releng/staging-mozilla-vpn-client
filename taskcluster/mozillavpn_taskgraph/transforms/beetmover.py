@@ -22,7 +22,7 @@ def add_beetmover_worker_config(config, tasks):
         moz_build_date = config.params["moz_build_date"]
         build_type = task["attributes"]["build-type"]
         build_os = os.path.dirname(build_type)
-        shipping_phase = config.params["shipping_phase"]
+        shipping_phase = config.params.get("shipping_phase", "")
 
         def get_version_from_release_branch_head_ref():
             return config.params["head_ref"].split("/")[-1]
@@ -72,7 +72,7 @@ def add_beetmover_worker_config(config, tasks):
         def get_task_description():
             if build_type == "addons/opt":
                 return f"This {worker_type} task will upload the {task['name']} to {archive_url}{candidates_path}/"
-            if shipping_phase == 'ship-client':
+            if shipping_phase == "ship-client":
                 return f"This {worker_type} task will copy build {config.params['build_number']} from candidates to releases"
             return f"This {worker_type} task will upload a {build_os} release candidate for v{app_version} to {archive_url}{candidates_path}/"
 
