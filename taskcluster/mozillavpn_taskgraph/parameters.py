@@ -43,8 +43,8 @@ def get_decision_parameters(graph_config, parameters):
         "build-macos/opt": "Go9BiHT9TK6bP1JmG7LCPQ",
         "build-android-x64/debug": "QmPKuPXzT0G-bdYvbRZ-Fw",
         "build-ios/debug": "dV0rhrm1R5GQiLSOiBmTBw",
-        # "signing-addons-bundle": "GD1phCRuRNKL8TL3j11QlA",
+        "signing-addons-bundle": "GD1phCRuRNKL8TL3j11QlA",
         "signing-linux/opt": "LTg5GlR9RgiXKxbuyX2v7Q",
-        # "build-addons-bundle": "T4RJILAlSt2QAPqxl8z7rA",
+        "build-addons-bundle": "T4RJILAlSt2QAPqxl8z7rA",
         "build-linux/opt": "LeD51-ZYThSVtBzLTlOAgQ",
     }
