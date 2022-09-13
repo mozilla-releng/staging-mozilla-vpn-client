@@ -154,6 +154,14 @@ tasks:
                 routes:
                     $flattenDeep:
                         - checks
+                        - $if: 'level == "1"'
+                          then:
+                            - $if: 'tasks_for == "github-push"'
+                              then:
+                                - index.mozillavpn.v2.${project}.revision.${head_sha}.taskgraph.decision
+                            - $if: 'tasks_for == "github-release"'
+                              then:
+                                - index.mozillavpn.v2.${project}.release.${head_tag}.taskgraph.decision
                         - $if: 'level == "3"'
                           then:
                             - tc-treeherder.v2.${project}.${head_sha}
