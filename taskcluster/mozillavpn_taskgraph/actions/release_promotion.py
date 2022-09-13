@@ -34,16 +34,6 @@ def is_release_promotion_available(parameters):
     schema=lambda graph_config: {
         "type": "object",
         "properties": {
-            "build_number": {
-                "type": "integer",
-                "default": 1,
-                "minimum": 1,
-                "title": "The release build number",
-                "description": (
-                    "The release build number. Starts at 1 per "
-                    "release version, and increments on rebuild."
-                ),
-            },
             "do_not_optimize": {
                 "type": "array",
                 "description": (
@@ -53,11 +43,6 @@ def is_release_promotion_available(parameters):
                 "items": {
                     "type": "string",
                 },
-            },
-            "revision": {
-                "type": "string",
-                "title": "Optional: revision to ship",
-                "description": ("Optional: the revision to ship."),
             },
             "release_promotion_flavor": {
                 "type": "string",
@@ -89,7 +74,6 @@ def is_release_promotion_available(parameters):
         },
         "required": [
             "release_promotion_flavor",
-            "build_number",
         ],
     },
 )
@@ -134,7 +118,7 @@ def release_promotion_action(parameters, graph_config, input, task_group_id, tas
     )
     parameters["do_not_optimize"] = do_not_optimize
     parameters["target_tasks_method"] = target_tasks_method
-    parameters["build_number"] = int(input["build_number"])
+
     # When doing staging releases, we still want to re-use tasks from previous
     # graphs.
     parameters["optimize_target_tasks"] = True
