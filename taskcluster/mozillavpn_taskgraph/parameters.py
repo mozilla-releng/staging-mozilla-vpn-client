@@ -30,21 +30,21 @@ def get_decision_parameters(graph_config, parameters):
 
     pr_number = os.environ.get("MOZILLAVPN_PULL_REQUEST_NUMBER", None)
     parameters["pull_request_number"] = None if pr_number is None else int(pr_number)
-    # parameters["existing_tasks"] = {
-    #     "repackage-signing-msi": "O-X0PytoRVOo7cu8Gq9l4w",
-    #     "repackage-msi": "Ct_3Jy_0SOWN7ALrcicP2w",
-    #     "signing-windows/opt": "O7FpXQiaTY--ldyuK4vaSA",
-    #     "build-windows/opt": "NuZL4GMoQ06MU4pC1FkT6A",
-    #     "build-android-armv7/debug": "T7NRGTMWSXe3Izhqunm6Tw",
-    #     "build-wasm/opt": "CkgReNb8ThagfaNvvlhBNg",
-    #     "build-android-x86/debug": "QqDT8atdTuK1haoO_bO5fw",
-    #     "build-android-arm64/debug": "Cd3MQeMiSyus_YdRpeSGoA",
-    #     "signing-macos/opt": "GRp0RqvbTl-WVkVQDGS48g",
-    #     "build-macos/opt": "Go9BiHT9TK6bP1JmG7LCPQ",
-    #     "build-android-x64/debug": "QmPKuPXzT0G-bdYvbRZ-Fw",
-    #     "build-ios/debug": "dV0rhrm1R5GQiLSOiBmTBw",
-    #     "signing-addons-bundle": "GD1phCRuRNKL8TL3j11QlA",
-    #     "signing-linux/opt": "LTg5GlR9RgiXKxbuyX2v7Q",
-    #     "build-addons-bundle": "T4RJILAlSt2QAPqxl8z7rA",
-    #     "build-linux/opt": "LeD51-ZYThSVtBzLTlOAgQ",
-    # }
+    parameters["existing_tasks"] = {
+        "build-wasm/opt": "J-J05CO0RMuSpPLNT3m7jg",
+        "repackage-signing-msi": "BPSVHoLtSL-smKKSQ-4r9w",
+        "repackage-msi": "S9h1ZGCPRLKcscAIckaZaA",
+        "signing-windows/opt": "N9_vyuvIThKLJy17E6i5NQ",
+        "build-ios/debug": "WAlqeWZzSTady1NAQC771g",
+        "build-windows/opt": "LmLnJoSUSy2_l7cMAOjIWw",
+        "signing-macos/opt": "CUujtsjkRkeyCHqM5iLsaA",
+        "build-macos/opt": "Ms9OwhjaQ6Sdzkw6tvywGA",
+        "build-android-x64/debug": "RSZ7mBZnSByrWkxWC57-KQ",
+        "build-android-arm64/debug": "ROA_SsYoS26u4eYZqtNEeQ",
+        "build-android-armv7/debug": "f25xoxAbSy2xDcXRqwxMaw",
+        "signing-addons-bundle": "CdyioDVOT6W2GRILZ3WfOw",
+        "signing-linux/opt": "FDKapgtQQB27z9f3hOyyNA",
+        "build-android-x86/debug": "DSVHUbbPRzGwJviaNdG_QQ",
+        "build-addons-bundle": "Q1BlaTctRzejbagfW8eRkA",
+        "build-linux/opt": "WcYUZ8KuT4-h2l59vbt82A",
+    }
