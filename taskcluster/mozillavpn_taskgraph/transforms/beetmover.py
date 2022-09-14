@@ -19,40 +19,45 @@ def add_beetmover_worker_config(config, tasks):
             and config.params["tasks_for"] in task["run-on-tasks-for"]
         )
         bucket = "release" if is_relpro else "dep"
-        build_id = config.params["moz_build_date"]
+        build_id = (
+            config.params.get("build_number")
+            if config.params.get("build_number")
+            else config.params["moz_build_date"]
+        )
         build_type = task["attributes"]["build-type"]
         build_os = os.path.dirname(build_type)
         shipping_phase = config.params.get("shipping_phase", "")
 
-        def get_version_from_release_branch_head_ref():
-            return config.params["head_ref"].split("/")[-1]
+        if config.params["version"]:
+            app_version = config.params["version"]
+        elif "releases" in config.params["head_ref"]:
+            app_version = config.params["head_ref"].split("/")[-1]
+        else:
+            app_version = None  # addons are not versioned
 
-        app_version = (
-            config.params["version"]
-            if config.params["version"]
-            else get_version_from_release_branch_head_ref()
-        )
+        destination_paths = []
 
-        def get_destination_path():
-            if build_type == "addons/opt":
-                return os.path.join(
+        if build_type == "addons/opt":
+            destination_paths.append(
+                os.path.join(
                     "pub",
                     "vpn",
                     "addons",
                     "releases" if shipping_phase.startswith("ship") else "candidates",
                     build_id,
                 )
-            return os.path.join(
-                "pub",
-                "vpn",
-                "candidates",
-                f"{app_version}-candidates",
-                f"build{build_id}",
-                build_os,
             )
-
-        candidates_path = get_destination_path()
-        destination_paths = [candidates_path]
+        else:
+            destination_paths.append(
+                os.path.join(
+                    "pub",
+                    "vpn",
+                    "candidates",
+                    f"{app_version}-candidates",
+                    f"build{build_id}",
+                    build_os,
+                )
+            )
 
         if shipping_phase == "ship-addons":
             destination_paths.append(
@@ -69,7 +74,17 @@ def add_beetmover_worker_config(config, tasks):
             "https://ftp.mozilla.org/" if is_relpro else "https://ftp.stage.mozaws.net/"
         )
 
-        branch = config.params["head_ref"]
+        if build_type == "addons/opt" and task["name"] == "addons-bundle":
+            addons = set(os.listdir("addons"))
+            addons.remove("examples")
+            for addon in addons:
+                task["attributes"]["release-artifacts"].append(
+                    {
+                        "type": "file",
+                        "name": f"public/build/addons/{addon}.rcc",
+                        "path": f"/builds/worker/artifacts/addons/{addon}.rcc",
+                    }
+                )
 
         upstream_artifacts = []
         for dep in task["dependencies"]:
@@ -110,11 +125,11 @@ def add_beetmover_worker_config(config, tasks):
         }
 
         if build_type == "addons/opt":
-            task_description = f"This {worker_type} task will upload the {task['name']} to {archive_url}{candidates_path}/"
+            task_description = f"This {worker_type} task will upload the {task['name']} to {archive_url}{destination_paths[0]}/"
         elif shipping_phase == "ship-client":
             task_description = f"This {worker_type} task will copy build {build_id} from candidates to releases"
         else:
-            task_description = f"This {worker_type} task will upload a {build_os} release candidate for v{app_version} to {archive_url}{candidates_path}/"
+            task_description = f"This {worker_type} task will upload a {build_os} release candidate for v{app_version} to {archive_url}{destination_paths[0]}/"
 
         if not shipping_phase or shipping_phase.startswith("promote"):
             action = "push-to-candidates"
@@ -132,7 +147,7 @@ def add_beetmover_worker_config(config, tasks):
             "release-properties": {
                 "app-name": "vpn",
                 "app-version": app_version,
-                "branch": branch,
+                "branch": config.params["head_ref"],
                 "build-id": build_id,
                 "platform": build_type,
             },

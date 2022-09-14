@@ -55,18 +55,8 @@ tasks:
             chain-of-trust: true
             max-run-time: 3600
         run-on-tasks-for: [action:release-promotion]
-        release-artifacts:
-            - guide_01_how_to_vpn.rcc
-            - guide_02_is_my_vpn_working_correctly.rcc
-            - guide_03_adding_and_removing_devices.rcc
-            - guide_04_connecting_external_devices.rcc
-            - message_survey_28d_desktop.rcc
-            - message_survey_28d_mobile.rcc
-            - message_survey_staging_10s.rcc
-            - message_survey_staging_4s.rcc
-            - message_survey_staging_locale.rcc
-            - tutorial_01_get_started.rcc
-            - tutorial_02_connect_on_startup.rcc
+        # The addons-bundle release-artifacts are dynamically generated in the beetmover transform
+        release-artifacts: []
         dependencies:
             build: build-addons-bundle
         if-dependencies: [build]
