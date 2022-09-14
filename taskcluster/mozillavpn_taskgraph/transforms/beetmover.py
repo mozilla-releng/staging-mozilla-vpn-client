@@ -81,8 +81,8 @@ def add_beetmover_worker_config(config, tasks):
                 task["attributes"]["release-artifacts"].append(
                     {
                         "type": "file",
-                        "name": f"public/build/addons/{addon}.rcc",
-                        "path": f"/builds/worker/artifacts/addons/{addon}.rcc",
+                        "name": f"public/build/{addon}.rcc",
+                        "path": f"/builds/worker/artifacts/{addon}.rcc",
                     }
                 )
 
