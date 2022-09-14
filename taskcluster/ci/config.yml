@@ -97,7 +97,7 @@ workers:
             provisioner: scriptworker-k8s
             implementation: scriptworker-beetmover
             os: scriptworker
-            worker-type: 'mozillavpn-{level}-beetmover'
+            worker-type: 'mozillavpn-{level}-beetmover-dev'
 
 release-promotion:
     flavors:
