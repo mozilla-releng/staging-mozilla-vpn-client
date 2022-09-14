@@ -19,7 +19,7 @@ def add_beetmover_worker_config(config, tasks):
             and config.params["tasks_for"] in task["run-on-tasks-for"]
         )
         bucket = "release" if is_relpro else "dep"
-        build_id = (
+        build_id = str(
             config.params.get("build_number")
             if config.params.get("build_number")
             else config.params["moz_build_date"]
