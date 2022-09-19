@@ -33,7 +33,7 @@ def add_beetmover_worker_config(config, tasks):
         elif "releases" in config.params["head_ref"]:
             app_version = config.params["head_ref"].split("/")[-1]
         else:
-            app_version = None  # addons are not versioned
+            app_version = ""  # addons are not versioned
 
         destination_paths = []
 

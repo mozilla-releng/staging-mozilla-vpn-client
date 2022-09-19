@@ -19,7 +19,7 @@ tasks:
         worker-type: beetmover
         worker:
             chain-of-trust: true
-            max-run-time: 3600
+            max-run-time: 1800
         run-on-tasks-for: [github-release, action:release-promotion]
         release-artifacts: [MozillaVPN.pkg]
         dependencies:
@@ -36,7 +36,7 @@ tasks:
         worker-type: beetmover
         worker:
             chain-of-trust: true
-            max-run-time: 3600
+            max-run-time: 1800
         run-on-tasks-for: [github-release, action:release-promotion]
         release-artifacts: [MozillaVPN.msi]
         dependencies:
@@ -53,7 +53,7 @@ tasks:
         worker-type: beetmover
         worker:
             chain-of-trust: true
-            max-run-time: 3600
+            max-run-time: 1800
         run-on-tasks-for: [action:release-promotion]
         # The addons-bundle release-artifacts are dynamically generated in the beetmover transform
         release-artifacts: []
@@ -71,7 +71,7 @@ tasks:
         worker-type: beetmover
         worker:
             chain-of-trust: true
-            max-run-time: 3600
+            max-run-time: 1800
         run-on-tasks-for: [action:release-promotion]
         release-artifacts:
             - manifest.json
