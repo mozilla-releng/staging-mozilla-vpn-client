@@ -63,6 +63,8 @@ def set_worker_and_signing_type(config, tasks):
         build_type = task["attributes"]["build-type"]
         if (
             str(config.params["level"]) == "3"
+            and config.params["tasks_for"] == "action"
+            and config.params.get("shipping_phase") in ("promote-client", "ship-client")
             and build_type in PRODUCTION_SIGNING_BUILD_TYPES
         ):
             signing_type = "release-signing"
@@ -79,7 +81,10 @@ def set_worker_and_signing_type(config, tasks):
 @transforms.add
 def set_signing_attributes(config, tasks):
     for task in tasks:
-        task["attributes"]["signed"] = True
+        task["attributes"].update({
+            "signed": True,
+            "shipping-phase": config.params.get("shipping_phase"),
+        })
         yield task
 
 

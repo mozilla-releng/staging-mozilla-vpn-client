@@ -112,5 +112,9 @@ release-promotion:
             target-tasks-method: addons-target-tasks
         promote-client:
             target-tasks-method: client-target-tasks
+            rebuild-kinds:
+                - signing
+                - repackage
+                - repackage-signing
         ship-client:
             target-tasks-method: client-target-tasks
