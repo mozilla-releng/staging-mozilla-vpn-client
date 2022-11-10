@@ -212,6 +212,7 @@ tasks:
                               MOZILLAVPN_HEAD_TAG: '${head_tag}'
                               MOZILLAVPN_REPOSITORY_TYPE: git
                               MOZILLAVPN_PIP_REQUIREMENTS: taskcluster/requirements.txt
+                              PIP_DISABLE_REQUIRE_HASHES: 1
                               REPOSITORIES: {$json: {mozillavpn: "MozillaVPN"}}
                               ANDROID_SDK_ROOT: /builds/worker/android-sdk
                             - $if: 'tasks_for in ["github-pull-request"]'
