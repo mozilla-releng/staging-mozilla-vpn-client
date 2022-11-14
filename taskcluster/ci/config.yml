@@ -38,17 +38,17 @@ workers:
             provisioner: 'mozillavpn-{level}'
             implementation: docker-worker
             os: linux
-            worker-type: b-linux
+            worker-type: b-linux-gcp
         b-linux-large:
             provisioner: 'mozillavpn-{level}'
             implementation: docker-worker
             os: linux
-            worker-type: b-linux-large
+            worker-type: b-linux-large-gcp
         b-win2012:
             provisioner: 'mozillavpn-{level}'
             implementation: generic-worker
             os: windows
-            worker-type: b-win2012
+            worker-type: b-win2012-azure
         b-macos:
             provisioner: 'releng-hardware'
             implementation: generic-worker
@@ -61,7 +61,7 @@ workers:
             provisioner: 'mozillavpn-{level}'
             implementation: docker-worker
             os: linux
-            worker-type: 'images'
+            worker-type: 'images-gcp'
         dep-signing:
             provisioner: scriptworker-k8s
             implementation: scriptworker-signing
@@ -97,11 +97,16 @@ workers:
             provisioner: scriptworker-k8s
             implementation: scriptworker-beetmover
             os: scriptworker
+<<<<<<< HEAD
             worker-type: 'mozillavpn-{level}-beetmover-dev'
+=======
+            worker-type: 'mozillavpn-{level}-beetmover'
+>>>>>>> 6b12009b8b60305dace037a184fe9169fb65f297
 
 release-promotion:
     flavors:
         promote-addons:
+<<<<<<< HEAD
             target-tasks-method: promote-addons
         ship-addons:
             target-tasks-method: ship-addons
@@ -109,3 +114,12 @@ release-promotion:
             target-tasks-method: promote-client
         ship-client:
             target-tasks-method: ship-client
+=======
+            target-tasks-method: addons-target-tasks
+        ship-addons:
+            target-tasks-method: addons-target-tasks
+        promote-client:
+            target-tasks-method: client-target-tasks
+        ship-client:
+            target-tasks-method: client-target-tasks
+>>>>>>> 6b12009b8b60305dace037a184fe9169fb65f297

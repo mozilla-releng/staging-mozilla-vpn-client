@@ -11,6 +11,24 @@ transforms = TransformSequence()
 
 
 @transforms.add
+def add_addons_release_artifacts(config, tasks):
+    for task in tasks:
+        if task["attributes"]["build-type"] == "addons/opt" and task["name"] == "addons-bundle":
+            addons = set(os.listdir("addons"))
+            addons.remove("examples")
+            addons.remove("deprecated")
+            for addon in addons:
+                task["attributes"]["release-artifacts"].append(
+                    {
+                        "type": "file",
+                        "name": f"public/build/{addon}.rcc",
+                        "path": f"/builds/worker/artifacts/{addon}.rcc",
+                    }
+                )
+        yield task
+
+
+@transforms.add
 def add_beetmover_worker_config(config, tasks):
     for task in tasks:
         worker_type = task["worker-type"]
@@ -21,7 +39,15 @@ def add_beetmover_worker_config(config, tasks):
         bucket = "release" if is_relpro else "dep"
         build_id = config.params["moz_build_date"]
         build_type = task["attributes"]["build-type"]
+<<<<<<< HEAD
         build_os = os.path.dirname(build_type)
+=======
+        build_type_os = {
+            'macos/opt': 'mac',
+            'windows/opt': 'windows',
+        }
+        build_os = build_type_os.get(build_type)
+>>>>>>> 6b12009b8b60305dace037a184fe9169fb65f297
         shipping_phase = config.params.get("shipping_phase", "")
 
         if config.params["version"]:
@@ -69,6 +95,7 @@ def add_beetmover_worker_config(config, tasks):
         archive_url = (
             "https://ftp.mozilla.org/" if is_relpro else "https://ftp.stage.mozaws.net/"
         )
+<<<<<<< HEAD
 
         if build_type == "addons/opt" and task["name"] == "addons-bundle":
             addons = set(os.listdir("addons"))
@@ -81,6 +108,8 @@ def add_beetmover_worker_config(config, tasks):
                         "path": f"/builds/worker/artifacts/{addon}.rcc",
                     }
                 )
+=======
+>>>>>>> 6b12009b8b60305dace037a184fe9169fb65f297
 
         upstream_artifacts = []
         for dep in task["dependencies"]:

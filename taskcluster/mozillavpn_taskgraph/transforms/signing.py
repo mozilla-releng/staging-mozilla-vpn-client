@@ -27,7 +27,11 @@ SIGNING_BUILD_TYPES = PRODUCTION_SIGNING_BUILD_TYPES + [
     # Note: it appears we don't have infra for debug signing
     # android builds. Contact releng if you need it :)
     # "android-debug",
+<<<<<<< HEAD
     "addons/opt",
+=======
+    # "addons/opt",  # TODO: Add addons debug builds? We have the infra to debug sign them.
+>>>>>>> 6b12009b8b60305dace037a184fe9169fb65f297
 ]
 
 

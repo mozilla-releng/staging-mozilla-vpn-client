@@ -20,7 +20,11 @@ tasks:
         worker:
             chain-of-trust: true
             max-run-time: 1800
+<<<<<<< HEAD
         run-on-tasks-for: [github-release, action:release-promotion]
+=======
+        run-on-tasks-for: [action]
+>>>>>>> 6b12009b8b60305dace037a184fe9169fb65f297
         release-artifacts: [MozillaVPN.pkg]
         dependencies:
             signing: signing-macos/opt
@@ -37,7 +41,11 @@ tasks:
         worker:
             chain-of-trust: true
             max-run-time: 1800
+<<<<<<< HEAD
         run-on-tasks-for: [github-release, action:release-promotion]
+=======
+        run-on-tasks-for: [action]
+>>>>>>> 6b12009b8b60305dace037a184fe9169fb65f297
         release-artifacts: [MozillaVPN.msi]
         dependencies:
             repackage-signing: repackage-signing-msi
@@ -54,7 +62,11 @@ tasks:
         worker:
             chain-of-trust: true
             max-run-time: 1800
+<<<<<<< HEAD
         run-on-tasks-for: [action:release-promotion]
+=======
+        run-on-tasks-for: [action]
+>>>>>>> 6b12009b8b60305dace037a184fe9169fb65f297
         # The addons-bundle release-artifacts are dynamically generated in the beetmover transform
         release-artifacts: []
         dependencies:
@@ -72,7 +84,11 @@ tasks:
         worker:
             chain-of-trust: true
             max-run-time: 1800
+<<<<<<< HEAD
         run-on-tasks-for: [action:release-promotion]
+=======
+        run-on-tasks-for: [action]
+>>>>>>> 6b12009b8b60305dace037a184fe9169fb65f297
         release-artifacts:
             - manifest.json
             - manifest.json.sig

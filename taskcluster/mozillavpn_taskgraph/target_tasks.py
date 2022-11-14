@@ -5,11 +5,19 @@
 from taskgraph.target_tasks import _target_task
 
 
+<<<<<<< HEAD
 @_target_task("promote-addons")
 def target_tasks_promote_addons(full_task_graph, parameters, graph_config):
     def filter(task):
         if (
             task.attributes.get("shipping-phase") == "promote-addons"
+=======
+@_target_task("addons-target-tasks")
+def addons_target_tasks(full_task_graph, parameters, graph_config):
+    def filter(task):
+        if (
+            task.attributes.get("shipping-phase") == parameters["shipping_phase"]
+>>>>>>> 6b12009b8b60305dace037a184fe9169fb65f297
             and task.attributes.get("build-type") == "addons/opt"
         ):
             return True
@@ -17,6 +25,7 @@ def target_tasks_promote_addons(full_task_graph, parameters, graph_config):
     return [label for label, task in full_task_graph.tasks.items() if filter(task)]
 
 
+<<<<<<< HEAD
 @_target_task("ship-addons")
 def target_tasks_ship_addons(full_task_graph, parameters, graph_config):
     filtered_for_candidates = target_tasks_promote_addons(
@@ -66,6 +75,13 @@ def target_tasks_ship_client(full_task_graph, parameters, graph_config):
 
         if (
             task.attributes.get("shipping-phase") == "ship-client"
+=======
+@_target_task("client-target-tasks")
+def client_target_tasks(full_task_graph, parameters, graph_config):
+    def filter(task):
+        if (
+            task.attributes.get("shipping-phase") == parameters["shipping_phase"]
+>>>>>>> 6b12009b8b60305dace037a184fe9169fb65f297
             and task.attributes.get("build-type") != "addons/opt"
         ):
             return True

@@ -40,6 +40,7 @@ def is_release_promotion_available(parameters):
                 "default": "promote-addons",
                 "enum": sorted(graph_config["release-promotion"]["flavors"].keys()),
             },
+<<<<<<< HEAD
             "build_number": {
                 "type": "integer",
                 "title": "The release build number",
@@ -47,6 +48,8 @@ def is_release_promotion_available(parameters):
                     "Optional: The release build number."
                 ),
             },
+=======
+>>>>>>> 6b12009b8b60305dace037a184fe9169fb65f297
             "do_not_optimize": {
                 "type": "array",
                 "description": (
@@ -125,7 +128,10 @@ def release_promotion_action(parameters, graph_config, input, task_group_id, tas
     )
     parameters["do_not_optimize"] = do_not_optimize
     parameters["target_tasks_method"] = target_tasks_method
+<<<<<<< HEAD
     parameters["build_number"] = int(input.get("build_number")) if input.get("build_number") else input.get("build_number")
+=======
+>>>>>>> 6b12009b8b60305dace037a184fe9169fb65f297
 
     # When doing staging releases, we still want to re-use tasks from previous
     # graphs.

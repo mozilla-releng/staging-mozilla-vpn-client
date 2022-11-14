@@ -103,6 +103,8 @@ target_sources(unit_tests PRIVATE
     ${MVPN_SOURCE_DIR}/constants.cpp
     ${MVPN_SOURCE_DIR}/constants.h
     ${MVPN_SOURCE_DIR}/controller.h
+    ${MVPN_SOURCE_DIR}/cryptosettings.cpp
+    ${MVPN_SOURCE_DIR}/cryptosettings.h
     ${MVPN_SOURCE_DIR}/curve25519.cpp
     ${MVPN_SOURCE_DIR}/curve25519.h
     ${MVPN_SOURCE_DIR}/dnspingsender.cpp
@@ -185,6 +187,7 @@ target_sources(unit_tests PRIVATE
     ${MVPN_SOURCE_DIR}/platforms/android/androiddatamigration.h
     ${MVPN_SOURCE_DIR}/platforms/android/androidsharedprefs.cpp
     ${MVPN_SOURCE_DIR}/platforms/android/androidsharedprefs.h
+    ${MVPN_SOURCE_DIR}/platforms/dummy/dummycryptosettings.cpp
     ${MVPN_SOURCE_DIR}/platforms/dummy/dummynetworkwatcher.cpp
     ${MVPN_SOURCE_DIR}/platforms/dummy/dummynetworkwatcher.h
     ${MVPN_SOURCE_DIR}/platforms/dummy/dummypingsender.cpp
@@ -231,10 +234,10 @@ target_sources(unit_tests PRIVATE
     ${MVPN_SOURCE_DIR}/tasks/servers/taskservers.h
     ${MVPN_SOURCE_DIR}/taskscheduler.cpp
     ${MVPN_SOURCE_DIR}/taskscheduler.h
+    ${MVPN_SOURCE_DIR}/temporarydir.cpp
+    ${MVPN_SOURCE_DIR}/temporarydir.h
     ${MVPN_SOURCE_DIR}/theme.cpp
     ${MVPN_SOURCE_DIR}/theme.h
-    ${MVPN_SOURCE_DIR}/timersingleshot.cpp
-    ${MVPN_SOURCE_DIR}/timersingleshot.h
     ${MVPN_SOURCE_DIR}/tutorial/tutorial.cpp
     ${MVPN_SOURCE_DIR}/tutorial/tutorial.h
     ${MVPN_SOURCE_DIR}/tutorial/tutorialstep.cpp
@@ -312,14 +315,16 @@ target_sources(unit_tests PRIVATE
     testreleasemonitor.h
     testserveri18n.cpp
     testserveri18n.h
+    testsettings.cpp
+    testsettings.h
     teststatusicon.cpp
     teststatusicon.h
     testtasks.cpp
     testtasks.h
+    testtemporarydir.cpp
+    testtemporarydir.h
     testthemes.cpp
     testthemes.h
-    testtimersingleshot.cpp
-    testtimersingleshot.h
     testurlopener.cpp
     testurlopener.h
     websocket/testexponentialbackoffstrategy.cpp

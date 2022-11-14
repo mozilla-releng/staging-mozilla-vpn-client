@@ -70,7 +70,7 @@ VPNViewBase {
             // More tutorials
             Item {
                 property string title: VPNl18n.TipsAndTricksMoreTutorialsTitle
-                property string description: VPNl18n.TipsAndTricksMoreTutorialsDescription
+                property string description: VPNl18n.TipsAndTricksMoreTutorialsDescription2
                 property var filter: (addon) => !addon.highlighted
             }
         }
@@ -79,6 +79,7 @@ VPNViewBase {
             // All
             VPNViewBase {
                 objectName: 'allTab'
+                anchors.topMargin: 0
 
                 _viewContentData: ColumnLayout {
                     id: layoutAll
@@ -128,13 +129,13 @@ VPNViewBase {
                             }
                         }
                     }
-
-                    VPNFooterMargin {}
                 }
             },
 
             // Tutorials
             VPNViewBase {
+                anchors.topMargin: 0
+
                 _viewContentData: ColumnLayout {
                     id: layoutTutorial
 
@@ -159,13 +160,13 @@ VPNViewBase {
                             customFilter: section.filter
                         }
                     }
-
-                    VPNFooterMargin {}
                 }
             },
 
             // Tips
             VPNViewBase {
+                anchors.topMargin: 0
+
                 _viewContentData: ColumnLayout {
                     id: layoutGuide
 
@@ -190,8 +191,6 @@ VPNViewBase {
                             customFilter: section.filter
                         }
                     }
-
-                    VPNFooterMargin {}
                 }
             }
         ]
