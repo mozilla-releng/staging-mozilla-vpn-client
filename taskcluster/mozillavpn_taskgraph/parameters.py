@@ -11,6 +11,7 @@ from voluptuous import All, Any, Range, Required
 def get_defaults(repo_root):
     return {
         "pull_request_number": None,
+        "shipping_phase": None,
         "version": "",
     }
 
@@ -18,9 +19,10 @@ def get_defaults(repo_root):
 extend_parameters_schema(
     {
         Required("pull_request_number"): Any(All(int, Range(min=1)), None),
+        Required("shipping_phase"): Any(str, None),
         Required("version"): str,
     },
-    defaults_fn=get_defaults
+    defaults_fn=get_defaults,
 )
 
 
@@ -30,3 +32,19 @@ def get_decision_parameters(graph_config, parameters):
 
     pr_number = os.environ.get("MOZILLAVPN_PULL_REQUEST_NUMBER", None)
     parameters["pull_request_number"] = None if pr_number is None else int(pr_number)
+    parameters.update(
+        {
+            "target_tasks_method": "client-target-tasks",
+            "existing_tasks": {
+                "beetmover-macos": "O0-eEGsFQYKzctl6ZmxETA",
+                "beetmover-windows": "VbQDp2TSTAqd-1s3tSeE8w",
+                "build-macos/opt": "c10jdtQZT2mlSWR1sIhMdQ",
+                "build-windows/opt": "UTZUAxqkSLiz1Ashq_dy9w",
+                "repackage-msi": "ZGAk37KzSySxy5-unnAw4w",
+                "repackage-signing-msi": "NJd5IiKuRcm39VVcRYyklw",
+                "signing-macos/opt": "cziK2Kz3S5KaCZUis9f2OA",
+                "signing-windows/opt": "dJk2WQCpQ5uhsGjogKOp6w",
+            },
+            "shipping_phase": "promote-client",
+        }
+    )

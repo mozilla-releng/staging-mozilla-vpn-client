@@ -4,6 +4,7 @@
 """
 Add dependencies to release tasks.
 """
+import json
 import os
 from string import Template
 from textwrap import dedent
@@ -13,42 +14,40 @@ from taskgraph.transforms.base import TransformSequence
 transforms = TransformSequence()
 TEMPLATE = Template(
     """
-{
-    "blocks": [
-        {
-            "type": "context",
-            "elements": [
-                {
-                    "type": "image",
-                    "image_url": "https://a.slack-edge.com/production-standard-emoji-assets/14.0/google-medium/2714-fe0f.png",
-                    "alt_text": "notifications warning icon"
-                },
-                {
-                    "type": "mrkdwn",
-                    "text": "Release phase *<$taskcluster_root_url/tasks/groups/$${task.taskGroupId}|$phase>* is successful"
-                }
-            ]
-        },
-        {"type": "divider"},
-        {
-            "type": "context",
-            "elements": [
-                {"type": "mrkdwn", "text": "Build Directory:"},
-                $destinations
-            ]
-        },
-        {
-            "type": "context",
-            "elements": [
-                {"type": "mrkdwn", "text": "Revision:"},
-                {
-                    "type": "mrkdwn",
-                    "text": "<$repo/commit/$rev|$rev>"
-                }
-            ]
-        }
-    ]
-}
+[
+    {
+        "type": "context",
+        "elements": [
+            {
+                "type": "image",
+                "image_url": "https://a.slack-edge.com/production-standard-emoji-assets/14.0/google-medium/2714-fe0f.png",
+                "alt_text": "notifications warning icon"
+            },
+            {
+                "type": "mrkdwn",
+                "text": "Release phase *<$taskcluster_root_url/tasks/groups/$${task.taskGroupId}|$phase>* is successful"
+            }
+        ]
+    },
+    {"type": "divider"},
+    {
+        "type": "context",
+        "elements": [
+            {"type": "mrkdwn", "text": "Build Directory:"},
+            $destinations
+        ]
+    },
+    {
+        "type": "context",
+        "elements": [
+            {"type": "mrkdwn", "text": "Revision:"},
+            {
+                "type": "mrkdwn",
+                "text": "<$repo/commit/$rev|$rev>"
+            }
+        ]
+    }
+]
 """
 )
 
@@ -110,7 +109,8 @@ def format_message(config, tasks):
             """.lstrip()
             )
 
+        message = json.loads(TEMPLATE.substitute(**context))
         task.setdefault("notify", {}).setdefault("content", {}).setdefault("slack", {})[
             "blocks"
-        ] = TEMPLATE.substitute(**context)
+        ] = message
         yield task
