@@ -19,6 +19,8 @@ linux/source:
             - type: directory
               name: public/build
               path: /builds/worker/artifacts
+    release-artifacts:
+        - mozillavpn-sources.tar.gz
     run:
         using: run-task
         use-caches: true
