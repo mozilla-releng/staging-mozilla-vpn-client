@@ -8,8 +8,10 @@ import android.os.Binder
 import android.os.DeadObjectException
 import android.os.IBinder
 import android.os.Parcel
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import org.json.JSONObject
-import java.lang.Exception
+import kotlin.Exception
 
 class VPNServiceBinder(service: VPNService) : Binder() {
 
@@ -27,18 +29,14 @@ class VPNServiceBinder(service: VPNService) : Binder() {
         const val deactivate = 2
         const val registerEventListener = 3
         const val requestStatistic = 4
-        const val requestGetLog = 5
         const val requestCleanupLog = 6
         const val resumeActivate = 7
         const val setNotificationText = 8
-        const val setStrings = 9
         const val recordEvent = 10
-        const val sendGleanPings = 11
-        const val gleanUploadEnabledChanged = 12
-        const val controllerInit = 13
-        const val gleanSetSourceTags = 14
+        const val getStatus = 13
         const val setStartOnBoot = 15
         const val reactivate = 16
+        const val clearStorage = 17
     }
 
     /**
@@ -118,11 +116,12 @@ class VPNServiceBinder(service: VPNService) : Binder() {
                 Log.i(tag, "Registered binder now: ${mListeners.size} Binders")
                 return true
             }
-            ACTIONS.controllerInit -> {
+            ACTIONS.getStatus -> {
                 val obj = JSONObject()
                 obj.put("connected", mService.isUp)
                 obj.put("time", mService.connectionTime)
                 obj.put("city", mService.cityname)
+                obj.put("canActivate", mService.canActivate)
                 dispatchEvent(EVENTS.init, obj.toString())
                 return true
             }
@@ -131,46 +130,23 @@ class VPNServiceBinder(service: VPNService) : Binder() {
                 dispatchEvent(EVENTS.statisticUpdate, mService.status.toString())
                 return true
             }
-
-            ACTIONS.requestGetLog -> {
-                // Grabs all the Logs and dispatch new Log Event
-                dispatchEvent(EVENTS.backendLogs, Log.getContent())
-                return true
-            }
             ACTIONS.requestCleanupLog -> {
                 Log.clearFile()
                 return true
             }
             ACTIONS.setNotificationText -> {
-                NotificationUtil.get(mService)?.update(data)
-                return true
-            }
-            ACTIONS.setStrings -> {
-                NotificationUtil.get(mService)?.updateStrings(data, mService)
-                return true
-            }
-            ACTIONS.recordEvent -> {
                 val buffer = data.createByteArray()
                 val json = buffer?.let { String(it) }
-                val event = JSONObject(json)
-                mService.mGlean.recordEvent(event)
+                if (json.isNullOrEmpty()) {
+                    return false
+                }
+                try {
+                    val message = Json.decodeFromString<ClientNotification>(json)
+                    mService.mNotificationHandler.setNotificationText(message)
+                } catch (e: Exception) {
+                    e.message?.let { Log.e(tag, it) }
+                }
                 return true
-            }
-            ACTIONS.sendGleanPings -> {
-                mService.mGlean.sendGleanMainPing()
-                return true
-            }
-            ACTIONS.gleanUploadEnabledChanged -> {
-                val buffer = data.createByteArray()
-                val json = buffer?.let { String(it) }
-                val args = JSONObject(json)
-                mService.mGlean.setGleanUploadEnabled(args.getBoolean("enabled"))
-                return true
-            }
-            ACTIONS.gleanSetSourceTags -> {
-                val buffer = data.createByteArray()
-                val list = buffer?.let { String(it) }
-                mService.mGlean.setGleanSourceTag(list)
             }
             ACTIONS.setStartOnBoot -> {
                 val buffer = data.createByteArray()
@@ -180,6 +156,9 @@ class VPNServiceBinder(service: VPNService) : Binder() {
                 Prefs.get(mService).edit().apply() {
                     putBoolean(BootReceiver.START_ON_BOOT, value)
                 }.apply()
+            }
+            ACTIONS.clearStorage -> {
+                mService.clearConfig()
             }
 
             IBinder.LAST_CALL_TRANSACTION -> {
@@ -260,7 +239,6 @@ class VPNServiceBinder(service: VPNService) : Binder() {
         const val connected = 1
         const val disconnected = 2
         const val statisticUpdate = 3
-        const val backendLogs = 4
         const val activationError = 5
         const val permissionRequired = 6
     }

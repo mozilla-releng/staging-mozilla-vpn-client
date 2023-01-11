@@ -3,8 +3,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 const assert = require('assert');
+const constants = require('./constants.js');
 const {URL} = require('node:url');
 const http = require('http')
+const queries = require('./queries.js');
 
 let client;
 
@@ -14,6 +16,8 @@ let _lastNotification = {
   title: null,
   message: null,
 };
+
+let _lastAddonLoadingCompleted = false;
 
 module.exports = {
   async connect(impl, options) {
@@ -40,6 +44,11 @@ module.exports = {
               return;
             }
 
+            if (json.type === 'addon_load_completed') {
+              _lastAddonLoadingCompleted = true;
+              return;
+            }
+
             assert(waitReadCallback, 'No waiting callback?');
             this._resolveWaitRead(json);
           });
@@ -58,9 +67,10 @@ module.exports = {
 
     if (awaitConnectionOkay) {
       await this.waitForCondition(async () => {
-        let title = await this.getElementProperty('controllerTitle', 'text');
+        let title = await this.getQueryProperty(
+            queries.screenHome.CONTROLLER_TITLE.visible(), 'text');
         let unsettled =
-            await this.getElementProperty('VPNConnectionHealth', 'unsettled');
+            await this.getVPNProperty('VPNConnectionHealth', 'unsettled');
         return (title == 'VPN is on') && (unsettled == 'false');
       });
     }
@@ -87,12 +97,11 @@ module.exports = {
         `Command failed: ${json.error}`);
   },
 
-  async waitForMainView() {
-    await this.waitForElement('getHelpLink');
-    await this.waitForElementProperty('getHelpLink', 'visible', 'true');
-    assert(await this.getElementProperty('getStarted', 'visible') === 'true');
+  async waitForInitialView() {
+    await this.waitForQuery(queries.screenInitialize.GET_HELP_LINK.visible());
+    assert(await this.query(queries.screenInitialize.GET_STARTED.visible()));
     assert(
-        await this.getElementProperty('learnMoreLink', 'visible') === 'true');
+        await this.query(queries.screenInitialize.LEARN_MORE_LINK.visible()));
   },
 
   async forceHeartbeatFailure() {
@@ -120,7 +129,8 @@ module.exports = {
     const json = await this._writeCommand(
         'force_subscription_management_reauthentication');
     assert(
-        json.type === 'force_subscription_management_reauthentication' && !('error' in json),
+        json.type === 'force_subscription_management_reauthentication' &&
+            !('error' in json),
         `Command failed: ${json.error}`);
   },
 
@@ -138,32 +148,38 @@ module.exports = {
         `Command failed: ${json.error}`);
   },
 
-  async hasElement(id) {
-    const json = await this._writeCommand(`has ${id}`);
+  async copyToClipboard(text) {
+    const json = await this._writeCommand(`copy_to_clipboard ${text}`);
     assert(
-        json.type === 'has' && !('error' in json),
+      !('type' in json) || (json.type === 'copy_to_clipboard' && !('error' in json)),
+      `Command failed: ${json.error}`);
+  },
+
+  async query(id) {
+    const json = await this._writeCommand(`query ${id}`);
+    assert(
+        json.type === 'query' && !('error' in json),
         `Command failed: ${json.error}`);
     return json.value || false;
   },
 
-  async waitForElement(id) {
+  async waitForQuery(id) {
     return this.waitForCondition(async () => {
-      return await this.hasElement(id);
+      return await this.query(id);
     });
   },
 
-  async clickOnElement(id) {
-    assert(await this.hasElement(id), 'Clicking on an non-existing element?!?');
+  async clickOnQuery(id) {
+    assert(await this.query(id), 'Clicking on an non-existing element?!?');
     const json = await this._writeCommand(`click ${id}`);
     assert(
         json.type === 'click' && !('error' in json),
         `Command failed: ${json.error}`);
   },
 
-  async waitForElementAndClick(id) {
-    await this.waitForElementAndProperty(id, 'visible', 'true');
-    await this.clickOnElement(id)
-    await this.wait()
+  async waitForQueryAndClick(id) {
+    await this.waitForQuery(id);
+    await this.clickOnQuery(id);
   },
 
   async clickOnNotification() {
@@ -173,28 +189,25 @@ module.exports = {
         `Command failed: ${json.error}`);
   },
 
-  async scrollToElement(view, id) {
-    assert(await this.hasElement(view), 'Scrolling on an non-existing view?!?');
-    assert(await this.hasElement(id), 'Requesting an non-existing element?!?');
+  async scrollToQuery(view, id) {
+    assert(await this.query(view), 'Scrolling on an non-existing view?!?');
+    assert(await this.query(id), 'Requesting an non-existing element?!?');
 
     const contentHeight =
-        parseInt(await this.getElementProperty(view, 'contentHeight'));
-    const height = parseInt(await this.getElementProperty(view, 'height'));
+        parseInt(await this.getQueryProperty(view, 'contentHeight'));
+    const height = parseInt(await this.getQueryProperty(view, 'height'));
     let maxScroll = (contentHeight > height) ? contentHeight - height : 0;
-    let elementY = parseInt(await this.getElementProperty(id, 'y'));
+    let elementY = parseInt(await this.getQueryProperty(id, 'y'));
 
     let contentY = elementY - (height / 2);
     if (contentY < 0) contentY = 0;
     if (contentY > maxScroll) contentY = maxScroll;
 
-    await this.setElementProperty(view, 'contentY', 'i', contentY);
+    await this.setQueryProperty(view, 'contentY', contentY);
     await this.wait();
   },
 
-  async getElementProperty(id, property) {
-    assert(
-        await this.hasElement(id),
-        'Property checks must be done on existing elements');
+  async getVPNProperty(id, property) {
     const json = await this._writeCommand(`property ${id} ${property}`);
     assert(
         json.type === 'property' && !('error' in json),
@@ -202,36 +215,47 @@ module.exports = {
     return json.value || '';
   },
 
-  async setElementProperty(id, property, type, value) {
+  async getQueryProperty(id, property) {
     assert(
-        await this.hasElement(id),
+        await this.query(id),
         'Property checks must be done on existing elements');
-    const json = await this._writeCommand(
-        `set_property ${id} ${property} ${type} ${value}`);
+    const json = await this._writeCommand(`query_property ${id} ${property}`);
+    assert(
+        json.type === 'query_property' && !('error' in json),
+        `Command failed: ${json.error}`);
+    return json.value || '';
+  },
+
+  async setVPNProperty(id, property, value) {
+    const json =
+        await this._writeCommand(`set_property ${id} ${property} ${value}`);
     assert(
         json.type === 'set_property' && !('error' in json),
         `Command failed: ${json.error}`);
   },
 
-  async waitForElementProperty(id, property, value) {
+  async setQueryProperty(id, property, value) {
     assert(
-        await this.hasElement(id),
+        await this.query(id),
         'Property checks must be done on existing elements');
+    const json = await this._writeCommand(
+        `set_query_property ${id} ${property} ${value}`);
+    assert(
+        json.type === 'set_query_property' && !('error' in json),
+        `Command failed: ${json.error}`);
+  },
+
+  async waitForVPNProperty(id, property, value) {
     try {
       return this.waitForCondition(async () => {
-        const real = await this.getElementProperty(id, property);
+        const real = await this.getVPNProperty(id, property);
         return real === value;
       });
     } catch (e) {
-      const real = await this.getElementProperty(id, property);
-      throw new Error(`Timeout for waitForElementProperty - property: ${
+      const real = await this.getVPNProperty(id, property);
+      throw new Error(`Timeout for waitForVPNProperty - property: ${
           property} - value: ${real} - expected: ${value}`);
     }
-  },
-
-  async waitForElementAndProperty(id, property, value) {
-    await this.waitForElement(id)
-    await this.waitForElementProperty(id, property, value)
   },
 
   async setGleanAutomationHeader() {
@@ -243,7 +267,7 @@ module.exports = {
   },
 
   async getLastUrl() {
-    return await this.getElementProperty('VPNUrlOpener', 'lastUrl');
+    return await this.getVPNProperty('VPNUrlOpener', 'lastUrl');
   },
 
   async waitForCondition(condition, waitTimeInMilliSecs = 500) {
@@ -265,11 +289,11 @@ module.exports = {
     }
 
     // This method must be called when the client is on the "Get Started" view.
-    await this.waitForMainView();
-    await this.setElementProperty('VPNUrlOpener', 'lastUrl', 's', '');
+    await this.waitForInitialView();
+    await this.setVPNProperty('VPNUrlOpener', 'lastUrl', '');
 
     // Click on get started and wait for authenticating view
-    await this.clickOnElement('getStarted');
+    await this.clickOnQuery(queries.screenInitialize.GET_STARTED.visible());
 
     if (!wasm) {
       await this.waitForCondition(async () => {
@@ -302,59 +326,74 @@ module.exports = {
     }
 
     // Wait for VPN client screen to move from spinning wheel to next screen
-    await this.waitForElementProperty('VPN', 'userState', 'UserAuthenticated');
-    await this.waitForElement('postAuthenticationButton');
+    await this.waitForVPNProperty('VPN', 'userState', 'UserAuthenticated');
+    await this.waitForQuery(queries.screenPostAuthentication.BUTTON.visible());
 
     // Clean-up extra devices (otherwise test account will fill up in a
     // heartbeats)
     await this._maybeRemoveExistingDevices();
 
     if (clickOnPostAuthenticate) {
-      await this.clickOnElement('postAuthenticationButton');
+      await this.waitForQuery(queries.global.SCREEN_LOADER.ready());
+      await this.clickOnQuery(
+          queries.screenPostAuthentication.BUTTON.visible());
       await this.wait();
     }
     if (acceptTelemetry) {
-      await this.waitForElement('telemetryPolicyButton');
-      await this.clickOnElement('telemetryPolicyButton');
-      await this.waitForElement('controllerTitle');
+      await this.waitForQuery(queries.global.SCREEN_LOADER.ready());
+      await this.waitForQuery(queries.screenTelemetry.BUTTON.visible());
+
+      await this.waitForQuery(queries.global.SCREEN_LOADER.ready());
+      await this.clickOnQuery(queries.screenTelemetry.BUTTON.visible());
+
+      await this.waitForQuery(queries.global.SCREEN_LOADER.ready());
+      await this.waitForQuery(queries.screenHome.CONTROLLER_TITLE.visible());
     }
   },
 
   async authenticateInApp(
       clickOnPostAuthenticate = false, acceptTelemetry = false) {
     // This method must be called when the client is on the "Get Started" view.
-    await this.waitForMainView();
+    await this.waitForInitialView();
 
     // Click on get started and wait for authenticating view
-    await this.clickOnElement('getStarted');
-    await this.waitForElement('authStart-textInput');
-    await this.setElementProperty(
-        'authStart-textInput', 'text', 's', 'test@test');
-    await this.waitForElement('authStart-button');
-    await this.clickOnElement('authStart-button');
+    await this.clickOnQuery(queries.screenInitialize.GET_STARTED.visible());
+    await this.waitForQuery(
+        queries.screenAuthenticationInApp.AUTH_START_TEXT_INPUT.visible());
+    await this.setQueryProperty(
+        queries.screenAuthenticationInApp.AUTH_START_TEXT_INPUT.visible(),
+        'text', 'test@test.com');
+    await this.waitForQueryAndClick(
+        queries.screenAuthenticationInApp.AUTH_START_BUTTON.visible()
+            .enabled());
 
-    await this.waitForElement('authSignIn-passwordInput');
-    await this.setElementProperty(
-        'authSignIn-passwordInput', 'text', 's', 'password');
+    await this.waitForQuery(
+        queries.screenAuthenticationInApp.AUTH_SIGNIN_PASSWORD_INPUT.visible());
+    await this.setQueryProperty(
+        queries.screenAuthenticationInApp.AUTH_SIGNIN_PASSWORD_INPUT.visible(),
+        'text', 'password');
 
-    await this.clickOnElement('authSignIn-button');
+    await this.clickOnQuery(
+        queries.screenAuthenticationInApp.AUTH_SIGNIN_BUTTON.visible()
+            .enabled());
 
     // Wait for VPN client screen to move from spinning wheel to next screen
-    await this.waitForElementProperty('VPN', 'userState', 'UserAuthenticated');
-    await this.waitForElement('postAuthenticationButton');
+    await this.waitForVPNProperty('VPN', 'userState', 'UserAuthenticated');
+    await this.waitForQuery(queries.screenPostAuthentication.BUTTON.visible());
 
     // Clean-up extra devices (otherwise test account will fill up in a
     // heartbeats)
     await this._maybeRemoveExistingDevices();
 
     if (clickOnPostAuthenticate) {
-      await this.clickOnElement('postAuthenticationButton');
+      await this.clickOnQuery(
+          queries.screenPostAuthentication.BUTTON.visible());
       await this.wait();
     }
     if (acceptTelemetry) {
-      await this.waitForElement('telemetryPolicyButton');
-      await this.clickOnElement('telemetryPolicyButton');
-      await this.waitForElement('controllerTitle');
+      await this.waitForQuery(queries.screenTelemetry.BUTTON.visible());
+      await this.clickOnQuery(queries.screenTelemetry.BUTTON.visible());
+      await this.waitForQuery(queries.screenHome.CONTROLLER_TITLE.visible());
     }
   },
 
@@ -462,16 +501,16 @@ module.exports = {
   async getDevices() {
     const json = await this._writeCommand('devices');
     assert(
-      json.type === 'devices' && !('error' in json),
-      `Command failed: ${json.error}`);
+        json.type === 'devices' && !('error' in json),
+        `Command failed: ${json.error}`);
     return json.value;
   },
 
   async getPublicKey() {
     const json = await this._writeCommand('public_key');
     assert(
-      json.type === 'public_key' && !('error' in json),
-      `Command failed: ${json.error}`);
+        json.type === 'public_key' && !('error' in json),
+        `Command failed: ${json.error}`);
     return json.value;
   },
 
@@ -482,6 +521,40 @@ module.exports = {
         json.type === 'send_push_message_device_deleted' && !('error' in json),
         `Command failed: ${json.error}`);
     return json.value;
+  },
+
+  async resetAddons(addonPath) {
+    await this.waitForVPNProperty('VPNAddonManager', 'loadCompleted', 'true');
+
+    _lastAddonLoadingCompleted = false;
+
+    await this.setSetting(
+        'addonCustomServerAddress', `${constants.ADDON_URL}/${addonPath}/`);
+    await this.setSetting('addonCustomServer', 'true');
+
+    const json = await this._writeCommand('reset_addons');
+    assert(
+        json.type === 'reset_addons' && !('error' in json),
+        `Command failed: ${json.error}`);
+
+    await this.waitForCondition(() => _lastAddonLoadingCompleted);
+  },
+
+  async fetchAddons(addonPath) {
+    await this.waitForVPNProperty('VPNAddonManager', 'loadCompleted', 'true');
+
+    _lastAddonLoadingCompleted = false;
+
+    await this.setSetting(
+        'addonCustomServerAddress', `${constants.ADDON_URL}/${addonPath}/`);
+    await this.setSetting('addonCustomServer', 'true');
+
+    const json = await this._writeCommand('fetch_addons');
+    assert(
+        json.type === 'fetch_addons' && !('error' in json),
+        `Command failed: ${json.error}`);
+
+    await this.waitForCondition(() => _lastAddonLoadingCompleted);
   },
 
   // Internal methods.

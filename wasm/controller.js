@@ -14,18 +14,15 @@ class Controller {
     }
   }
 
-  async hasElement(id) {
-    const json = await this._writeCommand(`has ${id}`);
+  async query(id) {
+    const json = await this._writeCommand(`query ${id}`);
     assert(
-        json.type === 'has' && !('error' in json),
+        json.type === 'query' && !('error' in json),
         `Command failed: ${json.error}`);
     return json.value || false;
   }
 
-  async getElementProperty(id, property) {
-    assert(
-        await this.hasElement(id),
-        'Property checks must be done on existing elements');
+  async getVPNProperty(id, property) {
     const json = await this._writeCommand(`property ${id} ${property}`);
     assert(
         json.type === 'property' && !('error' in json),
@@ -40,42 +37,42 @@ class Controller {
         `Command failed: ${json.error}`);
   }
 
-  async waitForElement(id) {
+  async waitForQuery(id) {
     return this.waitForCondition(async () => {
-      return await this.hasElement(id);
+      return await this.query(id);
     });
   }
 
-  async waitForElementProperty(id, property, value) {
-    assert(
-        await this.hasElement(id),
-        'Property checks must be done on existing elements');
+  async waitForVPNProperty(id, property, value) {
     try {
       return this.waitForCondition(async () => {
-        const real = await this.getElementProperty(id, property);
+        const real = await this.getVPNProperty(id, property);
         return real === value;
       });
     } catch (e) {
-      const real = await this.getElementProperty(id, property);
-      throw new Error(`Timeout for waitForElementProperty - property: ${
+      const real = await this.getVPNProperty(id, property);
+      throw new Error(`Timeout for waitForVPNProperty - property: ${
           property} - value: ${real} - expected: ${value}`);
     }
   }
 
-  async clickOnElement(id) {
-    assert(await this.hasElement(id), 'Clicking on an non-existing element?!?');
-    const json = await this._writeCommand(`click ${id}`);
+  async waitForQueryAndClick(id) {
+    await this.waitForQuery(id);
+    await this.clickOnQuery(id);
+  }
+
+  async clickOnQuery(query) {
+    assert(await this.query(query), 'Clicking on an non-existing element?!?');
+    const json = await this._writeCommand(`click ${query}`);
     assert(
         json.type === 'click' && !('error' in json),
         `Command failed: ${json.error}`);
   }
 
-  async waitForMainView() {
-    await this.waitForElement('getHelpLink');
-    await this.waitForElementProperty('getHelpLink', 'visible', 'true');
-    assert(await this.getElementProperty('getStarted', 'visible') === 'true');
-    assert(
-        await this.getElementProperty('learnMoreLink', 'visible') === 'true');
+  async waitForInitialView() {
+    await this.waitForQuery('//getHelpLink{visible=true}');
+    assert(await this.query('//getStarted{visible=true}'));
+    assert(await this.query('//learnMoreLink{visible=true}'));
   }
 
   async hardReset() {
@@ -89,6 +86,13 @@ class Controller {
     const json = await this._writeCommand('reset');
     assert(
         json.type === 'reset' && !('error' in json),
+        `Command failed: ${json.error}`);
+  }
+
+  async flipFeatureOff(key) {
+    const json = await this._writeCommand(`flip_off_feature ${key}`);
+    assert(
+        json.type === 'flip_off_feature' && !('error' in json),
         `Command failed: ${json.error}`);
   }
 
@@ -130,6 +134,7 @@ class Controller {
     if (obj.type === 'log') return;
     if (obj.type === 'network') return;
     if (obj.type === 'notification') return;
+    if (obj.type === 'addon_load_completed') return;
 
     assert(this._waitReadCallback, 'No waiting callback?');
     const wr = this._waitReadCallback;

@@ -19,29 +19,32 @@ import com.wireguard.config.Peer
 import com.wireguard.crypto.Key
 import org.json.JSONObject
 import java.util.*
+import org.mozilla.firefox.vpn.daemon.GleanMetrics.Sample
 
 class VPNService : android.net.VpnService() {
     private val tag = "VPNService"
     private var mBinder: VPNServiceBinder = VPNServiceBinder(this)
-    val mGlean = GleanUtil(this)
+    val mNotificationHandler by lazy {
+        NotificationUtil(this)
+    }
     private var mConfig: JSONObject? = null
     private var mConnectionTime: Long = 0
     private var mAlreadyInitialised = false
-    private val controllerPeriodicStateRecorderMsec: Long = 10800000
+    private val mGleanControllerStateTimerInterval: Long = 3 * 60 * 60 * 1000 // 3hrs
     private val mConnectionHealth = ConnectionHealth(this)
 
-    private val mGleanTimer = object : CountDownTimer(
-        controllerPeriodicStateRecorderMsec,
-        controllerPeriodicStateRecorderMsec / 4
+    private val mGleanControllerStateTimer = object : CountDownTimer(
+        mGleanControllerStateTimerInterval,
+        mGleanControllerStateTimerInterval / 4
     ) {
-        override fun onTick(millisUntilFinished: Long) {}
+        override fun onTick(millisUntilFinished: Long) { }
         override fun onFinish() {
             if (!isUp) {
-                mGlean.recordGleanEvent("controllerStateOff")
+                Sample.controllerStateOff.record()
             } else {
                 // When we're stil connected, rescheudle.
                 this.start()
-                mGlean.recordGleanEvent("controllerStateOn")
+                Sample.controllerStateOn.record()
             }
         }
     }
@@ -71,7 +74,6 @@ class VPNService : android.net.VpnService() {
             return
         }
         Log.init(this)
-        mGlean.initializeGlean()
         SharedLibraryLoader.loadSharedLibrary(this, "wg-go")
         Log.i(tag, "Initialised Service with Wireguard Version ${wgVersion()}")
         mAlreadyInitialised = true
@@ -164,6 +166,21 @@ class VPNService : android.net.VpnService() {
         get() {
             return mConnectionTime
         }
+
+    /**
+     * Checks if there is a config loaded
+     * or some available in the Storage to fetch.
+     * if this is false calling {reconnect()} will abort.
+     * @returns whether a config is found.
+     */
+    var canActivate: Boolean = false
+        get() {
+            if (mConfig != null) {
+                return true
+            }
+            val lastConfString = Prefs.get(this).getString("lastConf", "")
+            return !lastConfString.isNullOrEmpty()
+        }
     var cityname: String = ""
         get() {
             return mCityname
@@ -235,8 +252,9 @@ class VPNService : android.net.VpnService() {
             .putString("lastConf", json.toString())
             .apply()
 
-        NotificationUtil.get(this)?.show(this) // Go foreground
-        mGleanTimer.start()
+        // Go foreground
+        CannedNotification(mConfig)?.let { mNotificationHandler.show(it) }
+        mGleanControllerStateTimer.start()
 
         if (useFallbackServer) {
             mConnectionHealth.start(
@@ -260,16 +278,38 @@ class VPNService : android.net.VpnService() {
     }
 
     fun reconnect(forceFallBack: Boolean = false) {
+        // Save the current timestamp - so that a silent switch won't
+        // reset the timer in the app.
+        var currentConnectionTime = mConnectionTime
+
         if (this.mConfig == null) {
-            Log.e(tag, "Called reconnect without setting any conf first?")
-            return
+            // If we don't have a saved conf, retrieve the last connection from the Storage
+            val prefs = Prefs.get(this)
+            val lastConfString = prefs.getString("lastConf", "")
+            if (lastConfString.isNullOrEmpty()) {
+                // We have nothing to connect to -> Exit
+                Log.e(
+                    tag,
+                    "VPN service was triggered without defining a Server or having a tunnel"
+                )
+                return
+            }
+            this.mConfig = JSONObject(lastConfString)
         }
-        // Don't reset the connection time,
-        // so the users won't be surprised :)
-        val oldConnectionTime = mConnectionTime
         Log.v(tag, "Try to reconnect tunnel with same conf")
         this.turnOn(this.mConfig!!, forceFallBack)
-        mConnectionTime = oldConnectionTime
+        if (currentConnectionTime != 0.toLong()) {
+            // In case we have had a connection timestamp,
+            // restore that, so that the silent switch is not
+            // putting people off. :)
+            mConnectionTime = currentConnectionTime
+        }
+    }
+    fun clearConfig() {
+        Prefs.get(this).edit().apply() {
+            putString("lastConf", "")
+        }.apply()
+        mConfig = null
     }
 
     fun turnOff() {
@@ -281,8 +321,11 @@ class VPNService : android.net.VpnService() {
         // so we should get rid of it. :)
         val shouldClearNotification = !mBinder.isClientAttached
         stopForeground(shouldClearNotification)
-        mGleanTimer.cancel()
+        mGleanControllerStateTimer.cancel()
         mConnectionHealth.stop()
+        // Clear the notification message, so the content
+        // is not "disconnected" in case we connect from a non-client.
+        CannedNotification(mConfig)?.let { mNotificationHandler.hide(it) }
     }
 
     /**

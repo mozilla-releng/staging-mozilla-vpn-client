@@ -34,6 +34,9 @@ class VPNTileService : android.service.quicksettings.TileService() {
                     val config = JSONObject(json)
                     mState = if (config.getBoolean("connected")) State.Connected else State.Disconnected
                     mCity = config.getString("city")
+                    if (!config.getBoolean("canActivate")) {
+                        mState = State.Unknown
+                    }
                 }
                 VPNServiceBinder.EVENTS.activationError -> {
                     mState = State.Error
@@ -50,7 +53,9 @@ class VPNTileService : android.service.quicksettings.TileService() {
             out.writeStrongBinder(mServiceBinder)
             try {
                 // Register our IBinder Listener
-                vpnService?.transact(3, out, Parcel.obtain(), 0)
+                vpnService?.transact(VPNServiceBinder.ACTIONS.registerEventListener, out, Parcel.obtain(), 0)
+                // Ask the VPN Service for the current status
+                vpnService?.transact(VPNServiceBinder.ACTIONS.getStatus, out, Parcel.obtain(), 0)
                 mService = vpnService
             } catch (e: DeadObjectException) {
                 mService = null
@@ -111,7 +116,7 @@ class VPNTileService : android.service.quicksettings.TileService() {
             }
             State.Unknown -> {
                 tile_state = Tile.STATE_UNAVAILABLE
-                tile_state_description = "Not Connected With Service"
+                tile_state_description = "Not Available"
                 tile_subtitle = "Disconnected"
             }
             State.Connected -> {

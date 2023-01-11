@@ -3,15 +3,17 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "testaddonapi.h"
-#include "../../src/addons/addon.h"
-#include "../../src/addons/addonmessage.h"
-#include "../../src/addons/conditionwatchers/addonconditionwatcherjavascript.h"
-#include "../../src/models/feature.h"
-#include "../../src/qmlengineholder.h"
-#include "../../src/settingsholder.h"
-#include "helper.h"
 
 #include <QQmlApplicationEngine>
+
+#include "addons/addon.h"
+#include "addons/addonmessage.h"
+#include "addons/conditionwatchers/addonconditionwatcherjavascript.h"
+#include "feature.h"
+#include "helper.h"
+#include "qmlengineholder.h"
+#include "settingsholder.h"
+#include "urlopener.h"
 
 void TestAddonApi::controller() {
   MozillaVPN vpn;
@@ -204,6 +206,10 @@ void TestAddonApi::urlopener() {
   QVERIFY(!!message);
 
   settingsHolder.setPostAuthenticationShown(false);
+
+  UrlOpener* uo = UrlOpener::instance();
+  QVERIFY(!!uo);
+  uo->registerUrlLabel("aa", []() -> QString { return "http://foo.bar"; });
 
   AddonConditionWatcher* a = AddonConditionWatcherJavascript::maybeCreate(
       message, ":/addons_test/api_urlopener.js");

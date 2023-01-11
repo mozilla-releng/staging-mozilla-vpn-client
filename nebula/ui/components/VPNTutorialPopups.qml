@@ -247,7 +247,8 @@ Item {
         }
 
         tutorialPopup.secondaryButtonOnClicked = () => {
-            VPN.recordGleanEventWithExtraKeys("tutorialAborted", {"id": VPNTutorial.currentTutorial.id});
+            VPNGleanDeprecated.recordGleanEventWithExtraKeys("tutorialAborted", {"id": VPNTutorial.currentTutorial.id});
+            Glean.sample.tutorialAborted.record({ id: VPNTutorial.currentTutorial.id });
             tutorialPopup._onClosed = () => {
                 if (op !== null) VPNTutorial.interruptAccepted(op);
                 else VPNTutorial.stop();
@@ -308,18 +309,24 @@ Item {
         }
 
         function onShowWarningNeeded(tutorial) {
+            let shouldPlayTutorial = false
             tutorialPopup.imageSrc = "qrc:/ui/resources/logo-warning.svg";
             tutorialPopup.primaryButtonOnClicked = () => {
-                                                           tutorialPopup.close()
-                                                           VPNTutorial.play(tutorial);
-                                                           VPNNavigator.requestScreen(VPNNavigator.ScreenHome)
-                                                         }
+                shouldPlayTutorial = true
+                tutorialPopup.close()
+            }
             tutorialPopup.primaryButtonText = VPNl18n.GlobalContinue
             tutorialPopup.secondaryButtonOnClicked = () => tutorialPopup.close();
             tutorialPopup.secondaryButtonText = VPNl18n.GlobalNoThanks
             tutorialPopup.title = VPNl18n.TutorialPopupTutorialWarningTitle;
             tutorialPopup.description = VPNl18n.TutorialPopupTutorialWarningDescription
-            tutorialPopup._onClosed = () => {};
+            tutorialPopup._onClosed = () => {
+                VPNTutorial.stop()
+                if(shouldPlayTutorial) {
+                    VPNTutorial.play(tutorial)
+                    VPNNavigator.requestScreen(VPNNavigator.ScreenHome)
+                }
+            }
             tutorialPopup.dismissOnStop = false;
             tutorialPopup.open();
         }
@@ -339,4 +346,3 @@ Item {
         }
     }
 }
-

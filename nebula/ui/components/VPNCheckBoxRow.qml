@@ -11,10 +11,9 @@ import Mozilla.VPN 1.0
 RowLayout {
     id: checkBoxRow
 
-    property var labelText: ""
-    property var subLabelText: ""
+    property string labelText
+    property string subLabelText
     property bool isChecked
-    property bool isEnabled: true
     property bool showDivider: true
     property var leftMargin: 18
     property bool showAppImage: false
@@ -30,8 +29,7 @@ RowLayout {
         objectName: "checkbox"
         onClicked: checkBoxRow.clicked()
         checked: isChecked
-        enabled: isEnabled
-        opacity: isEnabled ? 1 : 0.5
+        opacity: checkBoxRow.enabled ? 1 : 0.5
         Component.onCompleted: {
             if (!showAppImage) {
                 Layout.leftMargin = leftMargin
