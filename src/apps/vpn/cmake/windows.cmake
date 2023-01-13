@@ -23,8 +23,6 @@ target_sources(mozillavpn PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
 
 # Windows platform source files
 target_sources(mozillavpn PRIVATE
-     ${CMAKE_CURRENT_SOURCE_DIR}/apps/vpn/commands/commandcrashreporter.cpp
-     ${CMAKE_CURRENT_SOURCE_DIR}/apps/vpn/commands/commandcrashreporter.h
      ${CMAKE_CURRENT_SOURCE_DIR}/apps/vpn/daemon/daemon.cpp
      ${CMAKE_CURRENT_SOURCE_DIR}/apps/vpn/daemon/daemon.h
      ${CMAKE_CURRENT_SOURCE_DIR}/apps/vpn/daemon/daemonlocalserver.cpp
@@ -94,7 +92,7 @@ add_custom_target(balrogdll ALL
                 CC=gcc
                 CGO_CFLAGS="-O3 -Wall -Wno-unused-function -Wno-switch -std=gnu11 -DWINVER=0x0601"
                 CGO_LDFLAGS="-Wl,--dynamicbase -Wl,--nxcompat -Wl,--export-all-symbols -Wl,--high-entropy-va"
-            go build -buildmode c-shared -ldflags="-w -s" -trimpath -v -o "${CMAKE_CURRENT_BINARY_DIR}/balrog.dll"
+            go build -buildmode c-shared -buildvcs=false -ldflags="-w -s" -trimpath -v -o "${CMAKE_CURRENT_BINARY_DIR}/balrog.dll"
 )
 set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/go-cache)
 add_dependencies(mozillavpn balrogdll)
