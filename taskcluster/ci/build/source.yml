@@ -20,11 +20,11 @@ linux/source:
               name: public/build
               path: /builds/worker/artifacts
     release-artifacts:
-        - mozillavpn-sources.tar.gz
+        - verification.txt
     run:
         using: run-task
         use-caches: true
         cwd: '{checkout}'
         command: >-
-            ./taskcluster/scripts/build/source.sh &&
-            tar -C .tmp -zvcf /builds/worker/artifacts/mozillavpn-sources.tar.gz .
+            echo "Please register 14F26682D0916CDD81E37B6D61B7B526D98F0353 to the" > /builds/worker/artifacts/verification.txt &&
+            echo "Launchpad user mozillacorp-dev.  2023-02-08 17:25:33 UTC" >> /builds/worker/artifacts/verification.txt
