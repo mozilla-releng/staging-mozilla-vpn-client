@@ -8,7 +8,11 @@
 #include <QTextStream>
 
 #include "commandlineparser.h"
+#include "controller.h"
 #include "leakdetector.h"
+#include "models/devicemodel.h"
+#include "models/servercountrymodel.h"
+#include "models/user.h"
 #include "mozillavpn.h"
 #include "settingsholder.h"
 #include "simplenetworkmanager.h"
@@ -102,7 +106,7 @@ int CommandStatus::run(QStringList& tokens) {
     }
 
     ServerCountryModel* model = vpn.serverCountryModel();
-    ServerData* sd = vpn.currentServer();
+    ServerData* sd = vpn.serverData();
     Q_ASSERT(sd);
 
     stream << "Server country code: " << sd->exitCountryCode() << Qt::endl;
@@ -141,6 +145,8 @@ int CommandStatus::run(QStringList& tokens) {
         break;
 
       case Controller::StateOn:
+        [[fallthrough]];
+      case Controller::StateSilentSwitching:
         stream << "on";
         break;
 

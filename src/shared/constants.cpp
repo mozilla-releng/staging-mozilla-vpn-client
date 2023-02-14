@@ -6,7 +6,6 @@
 
 #include <QProcessEnvironment>
 #include <QString>
-#include <QUrl>
 #include <QtGlobal>
 
 #include "settingsholder.h"
@@ -14,13 +13,23 @@
 
 namespace {
 bool s_inProduction = true;
+QString s_versionOverride = "";
 }  // namespace
 
 bool Constants::inProduction() { return s_inProduction; }
 
 void Constants::setStaging() { s_inProduction = false; }
 
-QString Constants::versionString() { return QStringLiteral(APP_VERSION); }
+void Constants::setVersionOverride(const QString& versionOverride) {
+  s_versionOverride = versionOverride;
+}
+
+QString Constants::versionString() {
+  if (!s_inProduction && !s_versionOverride.isEmpty()) {
+    return s_versionOverride;
+  }
+  return QStringLiteral(APP_VERSION);
+}
 
 QString Constants::buildNumber() { return QStringLiteral(BUILD_ID); }
 
@@ -34,10 +43,6 @@ QString Constants::envOrDefault(const QString& name,
   }
 
   if (env.isEmpty()) {
-    return defaultValue;
-  }
-
-  if (!QUrl(env).isValid()) {
     return defaultValue;
   }
 

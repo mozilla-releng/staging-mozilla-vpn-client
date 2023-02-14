@@ -15,6 +15,7 @@
 
 #include "ipaddress.h"
 #include "models/server.h"
+#include "models/serverdata.h"
 #include "pinghelper.h"
 
 class ControllerImpl;
@@ -44,6 +45,7 @@ class Controller final : public QObject {
     StateConfirming,
     StateOn,
     StateDisconnecting,
+    StateSilentSwitching,
     StateSwitching,
   };
   Q_ENUM(State)
@@ -61,6 +63,14 @@ class Controller final : public QObject {
       int connectionRetry READ connectionRetry NOTIFY connectionRetryChanged);
   Q_PROPERTY(bool enableDisconnectInConfirming READ enableDisconnectInConfirming
                  NOTIFY enableDisconnectInConfirmingChanged);
+  Q_PROPERTY(bool silentServerSwitchingSupported READ
+                 silentServerSwitchingSupported CONSTANT);
+
+#ifdef MZ_DUMMY
+  // This is just for testing purposes. Not exposed in prod.
+  Q_PROPERTY(QString currentServerString READ currentServerString NOTIFY
+                 currentServerChanged);
+#endif
 
  public:
   Controller();
@@ -74,8 +84,8 @@ class Controller final : public QObject {
 
   qint64 time() const;
 
-  bool switchServers();
-  bool silentSwitchServers();
+  bool switchServers(const ServerData& serverData);
+  bool silentSwitchServers(bool serverCoolDownNeeded);
 
   void updateRequired();
 
@@ -100,16 +110,33 @@ class Controller final : public QObject {
   void captivePortalPresent();
   void captivePortalGone();
 
+  const ServerData& currentServer() const { return m_serverData; }
+  bool silentServerSwitchingSupported() const;
+
+#ifdef MZ_DUMMY
+  QString currentServerString() const;
+#endif
+
+  static QList<IPAddress> getAllowedIPAddressRanges(const Server& server);
+
+  enum ServerSelectionPolicy {
+    RandomizeServerSelection,
+    DoNotRandomizeServerSelection,
+  };
+
  public slots:
   // These 2 methods activate/deactivate the VPN. Return true if a signal will
   // be emitted at the end of the operation.
-  bool activate();
+  bool activate(
+      const ServerData& serverData,
+      ServerSelectionPolicy serverSelectionPolicy = RandomizeServerSelection);
   bool deactivate();
 
   Q_INVOKABLE void quit();
 
  private slots:
-  void connected(const QString& pubkey);
+  void connected(const QString& pubkey,
+                 const QDateTime& connectionTimestamp = QDateTime());
   void disconnected();
   void timerTimeout();
   void implInitialized(bool status, bool connected,
@@ -128,9 +155,12 @@ class Controller final : public QObject {
   void readyToServerUnavailable(bool pingReceived);
   void connectionRetryChanged();
   void enableDisconnectInConfirmingChanged();
-  void silentSwitchDone();
   void activationBlockedForCaptivePortal();
   void handshakeFailed(const QString& serverHostname);
+
+#ifdef MZ_DUMMY
+  void currentServerChanged();
+#endif
 
  private:
   void setState(State state);
@@ -138,11 +168,16 @@ class Controller final : public QObject {
   void maybeEnableDisconnectInConfirming();
 
   bool processNextStep();
-  QList<IPAddress> getAllowedIPAddressRanges(const Server& server);
   QStringList getExcludedAddresses();
 
-  void activateInternal(Reason reason, bool forceDNSPort = false);
-  void activateNext(Reason reason);
+  enum DNSPortPolicy {
+    ForceDNSPort,
+    DoNotForceDNSPort,
+  };
+
+  void activateInternal(DNSPortPolicy dnsPort,
+                        ServerSelectionPolicy serverSelectionPolicy);
+  void activateNext();
 
   void clearRetryCounter();
   void clearConnectedTime();
@@ -178,6 +213,26 @@ class Controller final : public QObject {
   };
 
   NextStep m_nextStep = None;
+
+  // Server data can change while the controller is busy completing an
+  // activation or a server switch because they are managed by the
+  // SettingsHolder object and exposed to user interaction, addons, and JS.
+  //
+  // But the controller needs to know the location to use for the entire
+  // duration of its tasks. When the client schedules a VPN activation,
+  // `m_serverData` is set as a copy of the current `MozillaVPN::serverData()`,
+  // ignoring further updates until the pending operations terminate. Instead,
+  // `m_nextServerData` is set when a server-switch request is scheduled while
+  // an activation operation is still in progress.
+  //
+  // At initialization time, these two member variables are set to
+  // MozillaVPN::serverData() to do not let not initialize.
+  //
+  // Please, do not use MozillaVPN::serverData() in the controller!
+  ServerData m_serverData;
+  ServerData m_nextServerData;
+
+  ServerSelectionPolicy m_nextServerSelectionPolicy = RandomizeServerSelection;
 
   int m_connectionRetry = 0;
 

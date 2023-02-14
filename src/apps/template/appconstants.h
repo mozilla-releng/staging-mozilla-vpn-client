@@ -18,6 +18,11 @@ constexpr const char* NETWORK_USERAGENT_PREFIX = "FooBar";
 // The file name for the logging
 constexpr const char* LOG_FILE_NAME = "foobar.txt";
 
+// The localization filename prefix. The real file name should be called:
+// `LOCALIZER_FILENAME_PREFIX` + '_' + languageCode + ".qm". For instance:
+// `mozillavpn_it.qm
+constexpr const char* LOCALIZER_FILENAME_PREFIX = "foo_bar";
+
 #if defined(__APPLE__)
 // This is the name of the service to encrypt the settings file
 constexpr const char* CRYPTO_SETTINGS_SERVICE = "App FooBar";
@@ -54,10 +59,10 @@ constexpr const char* UI_PIPE = "/tmp/foobar.ui.sock";
 #define PRODBETAEXPR(type, functionName, prod, beta) \
   inline type functionName() { return Constants::inProduction() ? prod : beta; }
 
-PRODBETAEXPR(
-    QString, addonBaseUrl,
-    "https://archive.mozilla.org/pub/foobar/addons/releases/latest/",
-    envOrDefault("MZ_ADDON_URL",
+PRODBETAEXPR(QString, addonBaseUrl,
+             "https://archive.mozilla.org/pub/foobar/addons/releases/latest/",
+             Constants::envOrDefault(
+                 "MZ_ADDON_URL",
                  "https://mozilla-mobile.github.io/mozilla-vpn-client/addons/"))
 
 #undef PRODBETAEXPR

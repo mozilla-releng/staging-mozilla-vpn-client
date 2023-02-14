@@ -62,6 +62,8 @@ class ControllerImpl : public QObject {
   // Whether the controller supports multihop
   virtual bool multihopSupported() { return false; }
 
+  virtual bool silentServerSwitchingSupported() const { return true; }
+
  signals:
   // This signal is emitted when the controller is initialized. Note that the
   // VPN tunnel can be already active. In this case, "connected" should be set
@@ -72,7 +74,8 @@ class ControllerImpl : public QObject {
                    const QDateTime& connectionDate);
 
   // These 2 signals can be dispatched at any time.
-  void connected(const QString& pubkey);
+  void connected(const QString& pubkey,
+                 const QDateTime& connectionTimestamp = QDateTime());
   void disconnected();
 
   // This method should be emitted after a checkStatus() call.

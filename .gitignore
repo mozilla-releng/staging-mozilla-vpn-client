@@ -32,6 +32,7 @@ linux/netfilter/vendor/
 .venv
 __pycache__
 lottie.mjs
+qml_lint_result.txt
 
 # Translation pipeline
 addon_ts/
@@ -160,7 +161,6 @@ mozillavpnnp.vcxproj*
 /glean/glean_autogen/
 /glean/telemetry/*
 !/glean/telemetry/.keepme
-android/src/org/mozilla/firefox/vpn/glean/GleanEvents.kt
 vpnglean/prebuilt/
 vpnglean/uniffi.toml
 
@@ -182,7 +182,7 @@ macos/pkg/Resources/*.lproj
 addons/generated/
 
 # Adjust SDK Files
-android/src/com/adjust
+android/adjust/src/
 
 # ipmonitor
 tools/ipmonitor/ipmonitor

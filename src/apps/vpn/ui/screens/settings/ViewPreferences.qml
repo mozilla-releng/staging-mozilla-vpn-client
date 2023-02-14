@@ -10,6 +10,7 @@ import Mozilla.VPN 1.0
 import components 0.1
 
 VPNViewBase {
+    id: vpnFlickable
     property string _startAtBootTitle: ""
     property string _notificationsTitle: ""
     property string _languageTitle: ""
@@ -26,7 +27,7 @@ VPNViewBase {
             objectName: "settingStartAtBoot"
 
             labelText: _startAtBootTitle
-            subLabelText: VPNl18n.SettingsStartAtBootSubtitle
+            subLabelText: VPNI18n.SettingsStartAtBootSubtitle
             isChecked: VPNSettings.startAtBoot
             showDivider: false
             onClicked: VPNSettings.startAtBoot = !VPNSettings.startAtBoot
@@ -36,11 +37,6 @@ VPNViewBase {
                 left: parent.left
                 rightMargin: VPNTheme.theme.windowMargin
             }
-        }
-
-        VPNVerticalSpacer {
-            height: 1
-            width: parent.width
         }
 
         VPNCheckBoxRow {
@@ -55,7 +51,7 @@ VPNViewBase {
 
             //% "Data collection and use"
             labelText: qsTrId("vpn.settings.dataCollection")
-            subLabelText: VPNl18n.SettingsDataCollectionDescription
+            subLabelText: VPNI18n.SettingsDataCollectionDescription
             isChecked: VPNSettings.gleanEnabled
             onClicked: {
                 VPNSettings.gleanEnabled = !VPNSettings.gleanEnabled
@@ -99,7 +95,20 @@ VPNViewBase {
                 visible: VPNLocalizer.hasLanguages
                 width: parent.width - VPNTheme.theme.windowMargin
             }
-        }
 
+            VPNSettingsItem {
+                objectName: "dnsSettings"
+
+                anchors.left: parent.left
+                anchors.right: parent.right
+
+                settingTitle: VPNI18n.SettingsDnsSettings
+                imageLeftSrc: "qrc:/ui/resources/settings/dnssettings.svg"
+                imageRightSrc: "qrc:/nebula/resources/chevron.svg"
+                imageRightMirror: VPNLocalizer.isRightToLeft
+                onClicked: stackview.push("qrc:/ui/screens/settings/ViewDNSSettings.qml")
+                width: parent.width - VPNTheme.theme.windowMargin
+            }
+        }
     }
 }

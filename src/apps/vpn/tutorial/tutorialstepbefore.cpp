@@ -10,9 +10,11 @@
 #include <QMetaMethod>
 
 #include "addons/addontutorial.h"
+#include "controller.h"
 #include "inspector/inspectorutils.h"
 #include "leakdetector.h"
 #include "logger.h"
+#include "models/serverdata.h"
 #include "mozillavpn.h"
 
 namespace {
@@ -195,7 +197,7 @@ class TutorialStepBeforeVpnLocationSet final : public TutorialStepBefore {
   }
 
   bool run() override {
-    MozillaVPN::instance()->currentServer()->changeServer(
+    MozillaVPN::instance()->serverData()->changeServer(
         m_exitCountryCode, m_exitCity, m_entryCountryCode, m_entryCity);
     return true;
   }

@@ -12,9 +12,13 @@
 #include <QTcpSocket>
 #include <functional>
 
+#include "controller.h"
 #include "leakdetector.h"
 #include "localizer.h"
 #include "logger.h"
+#include "models/servercity.h"
+#include "models/servercountrymodel.h"
+#include "models/serverdata.h"
 #include "mozillavpn.h"
 #include "settingsholder.h"
 
@@ -38,7 +42,11 @@ void serializeServerCountry(ServerCountryModel* model, QJsonObject& obj) {
     countryObj["code"] = country.code();
 
     QJsonArray cities;
-    for (const ServerCity& city : country.cities()) {
+    for (const QString& cityName : country.cities()) {
+      const ServerCity& city = model->findCity(country.code(), cityName);
+      if (!city.initialized()) {
+        continue;
+      }
       QJsonObject cityObj;
       cityObj["name"] = city.name();
       cityObj["code"] = city.code();
@@ -47,7 +55,7 @@ void serializeServerCountry(ServerCountryModel* model, QJsonObject& obj) {
 
       QJsonArray servers;
       for (const QString& pubkey : city.servers()) {
-        const Server server = model->server(pubkey);
+        const Server& server = model->server(pubkey);
         if (!server.initialized()) {
           continue;
         }
@@ -86,10 +94,10 @@ QJsonObject serializeStatus() {
   MozillaVPN* vpn = MozillaVPN::instance();
 
   QJsonObject locationObj;
-  locationObj["exit_country_code"] = vpn->currentServer()->exitCountryCode();
-  locationObj["exit_city_name"] = vpn->currentServer()->exitCityName();
-  locationObj["entry_country_code"] = vpn->currentServer()->entryCountryCode();
-  locationObj["entry_city_name"] = vpn->currentServer()->entryCityName();
+  locationObj["exit_country_code"] = vpn->serverData()->exitCountryCode();
+  locationObj["exit_city_name"] = vpn->serverData()->exitCityName();
+  locationObj["entry_country_code"] = vpn->serverData()->entryCountryCode();
+  locationObj["entry_city_name"] = vpn->serverData()->entryCityName();
 
   QJsonObject obj;
   obj["authenticated"] = vpn->userState() == MozillaVPN::UserAuthenticated;

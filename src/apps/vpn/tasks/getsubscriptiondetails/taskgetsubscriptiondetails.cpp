@@ -4,11 +4,16 @@
 
 #include "taskgetsubscriptiondetails.h"
 
+#include <QJsonObject>
+
+#include "appconstants.h"
 #include "authenticationinapp/authenticationinapp.h"
 #include "authenticationinapp/authenticationinappsession.h"
 #include "authenticationlistener.h"
 #include "leakdetector.h"
 #include "logger.h"
+#include "models/subscriptiondata.h"
+#include "models/user.h"
 #include "mozillavpn.h"
 #include "networkrequest.h"
 
@@ -44,8 +49,9 @@ void TaskGetSubscriptionDetails::run() {
 }
 
 void TaskGetSubscriptionDetails::runInternal() {
-  NetworkRequest* request =
-      NetworkRequest::createForGetSubscriptionDetails(this);
+  NetworkRequest* request = new NetworkRequest(this, 200);
+  request->auth(MozillaVPN::authorizationHeader());
+  request->get(AppConstants::apiUrl(AppConstants::SubscriptionDetails));
 
   connect(
       request, &NetworkRequest::requestFailed, this,
@@ -139,9 +145,11 @@ void TaskGetSubscriptionDetails::initAuthentication() {
             logger.debug() << "Authentication completed with code:"
                            << logger.sensitive(pkceCodeSuccess);
 
-            NetworkRequest* request =
-                NetworkRequest::createForAuthenticationVerification(
-                    this, pkceCodeSuccess, pkceCodeVerifier);
+            NetworkRequest* request = new NetworkRequest(this, 200);
+            request->post(
+                AppConstants::apiUrl(AppConstants::LoginVerify),
+                QJsonObject{{"code", pkceCodeSuccess},
+                            {"code_verifier", QString(pkceCodeVerifier)}});
 
             connect(
                 request, &NetworkRequest::requestFailed, this,
@@ -176,7 +184,8 @@ void TaskGetSubscriptionDetails::initAuthentication() {
                 break;
 
               default:
-                // All the other states should be handled by the front-end code.
+                // All the other states should be handled by the
+                // front-end code.
                 break;
             }
           });

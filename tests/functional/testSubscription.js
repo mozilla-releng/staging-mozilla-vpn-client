@@ -5,6 +5,7 @@
 const assert = require('assert');
 const vpn = require('./helper.js');
 const queries = require('./queries.js');
+const fxaEndpoints = require('./servers/fxa_endpoints.js')
 
 const SUBSCRIPTION_DETAILS = {
   plan: {amount: 123, currency: 'usd', interval: 'year', interval_count: 1},
@@ -32,6 +33,7 @@ describe('Subscription view', function() {
     GETs: {
       '/api/v1/vpn/subscriptionDetails': {
         status: 200,
+        requiredHeaders: ['Authorization'],
         body: null,
         callback: (req) => this.ctx.guardianSubscriptionDetailsCallback(req)
       },
@@ -42,6 +44,7 @@ describe('Subscription view', function() {
   this.ctx.fxaOverrideEndpoints = {
     GETs: {
       '/v1/account/attached_clients': {
+        requiredHeaders: ['Authorization'],
         status: 200,
         body: [],
       },
@@ -49,16 +52,22 @@ describe('Subscription view', function() {
     POSTs: {
       '/v1/account/login': {
         status: 200,
+        bodyValidator: fxaEndpoints.validators.fxaLogin,
         body: null,
         callback: (req) => this.ctx.fxaLoginCallback(req)
       },
+
       '/v1/session/verify/totp': {
         status: 200,
+        requiredHeaders: ['Authorization'],
+        bodyValidator: fxaEndpoints.validators.fxaVerifyTotp,
         body: null,
         callback: (req) => this.ctx.fxaTotpCallback(req)
       },
+
       '/v1/account/destroy': {
         status: 200,
+        requiredHeaders: ['Authorization'],
         body: null,
         callback: (req) => this.ctx.fxaDestroyCallback(req)
       },
@@ -960,12 +969,15 @@ describe('Subscription view', function() {
       this.ctx.fxaOverrideEndpoints.POSTs['/v1/account/destroy'].body = {}
     };
 
+    await vpn.wait();
+
     await vpn.waitForQueryAndClick(
         queries.screenDeleteAccount.BUTTON.visible().enabled());
 
     await vpn.waitForQuery(queries.screenInitialize.GET_HELP_LINK.visible());
-    await vpn.waitForQuery(queries.screenInitialize.GET_STARTED.visible());
-    await vpn.waitForQuery(queries.screenInitialize.LEARN_MORE_LINK.visible());
+    await vpn.waitForQuery(queries.screenInitialize.SIGN_UP_BUTTON.visible());
+    await vpn.waitForQuery(
+        queries.screenInitialize.ALREADY_A_SUBSCRIBER_LINK.visible());
   });
 
   it('Account deletion - totp', async () => {
@@ -1106,12 +1118,15 @@ describe('Subscription view', function() {
       this.ctx.fxaOverrideEndpoints.POSTs['/v1/account/destroy'].body = {}
     };
 
+    await vpn.wait();
+
     await vpn.waitForQueryAndClick(
         queries.screenDeleteAccount.BUTTON.visible().enabled());
 
     await vpn.waitForQuery(queries.screenInitialize.GET_HELP_LINK.visible());
-    await vpn.waitForQuery(queries.screenInitialize.GET_STARTED.visible());
-    await vpn.waitForQuery(queries.screenInitialize.LEARN_MORE_LINK.visible());
+    await vpn.waitForQuery(queries.screenInitialize.SIGN_UP_BUTTON.visible());
+    await vpn.waitForQuery(
+        queries.screenInitialize.ALREADY_A_SUBSCRIBER_LINK.visible());
   });
 
   async function clickSettingsIcon() {

@@ -4,7 +4,6 @@
 
 import QtQuick 2.0
 import QtQuick.Controls 2.5
-import QtQuick.Layouts 1.14
 
 import Mozilla.VPN 1.0
 
@@ -54,8 +53,8 @@ RoundButton {
         }
         visualStateItem.state = uiState.stateFocused;
 
-        if (typeof(ensureVisible) !== "undefined")
-            ensureVisible(root);
+        if (focus && typeof(vpnFlickable) !== "undefined" && typeof(vpnFlickable.ensureVisible) !== "undefined")
+            vpnFlickable.ensureVisible(root)
     }
 
     background: Rectangle {

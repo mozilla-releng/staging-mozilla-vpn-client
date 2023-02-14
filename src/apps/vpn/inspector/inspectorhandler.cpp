@@ -20,6 +20,7 @@
 #include <functional>
 
 #include "addons/manager/addonmanager.h"
+#include "captiveportal/captiveportaldetection.h"
 #include "constants.h"
 #include "controller.h"
 #include "externalophandler.h"
@@ -31,12 +32,17 @@
 #include "localizer.h"
 #include "logger.h"
 #include "loghandler.h"
+#include "models/devicemodel.h"
 #include "models/featuremodel.h"
+#include "models/keys.h"
+#include "models/servercountrymodel.h"
 #include "mozillavpn.h"
 #include "networkmanager.h"
+#include "networkwatcher.h"
 #include "notificationhandler.h"
 #include "profileflow.h"
 #include "qmlengineholder.h"
+#include "releasemonitor.h"
 #include "serveri18n.h"
 #include "settingsholder.h"
 #include "task.h"
@@ -60,7 +66,6 @@ Logger logger("InspectorHandler");
 
 bool s_forwardNetwork = false;
 bool s_mockFreeTrial = false;
-bool s_forceRTL = false;
 
 QString s_updateVersion;
 QStringList s_pickedItems;
@@ -568,6 +573,24 @@ static QList<InspectorCommand> s_commands{
                        return obj;
                      }},
 
+    InspectorCommand{"messages", "Returns a list of the loaded messages ids", 0,
+                     [](InspectorHandler*, const QList<QByteArray>&) {
+                       QJsonObject obj;
+
+                       AddonManager* am = AddonManager::instance();
+                       Q_ASSERT(am);
+
+                       QJsonArray messages;
+                       am->forEach([&](Addon* addon) {
+                         if (addon->type() == "message") {
+                           messages.append(addon->id());
+                         }
+                       });
+
+                       obj["value"] = messages;
+                       return obj;
+                     }},
+
     InspectorCommand{"translate", "Translate a string", 1,
                      [](InspectorHandler*, const QList<QByteArray>& arguments) {
                        QJsonObject obj;
@@ -622,7 +645,11 @@ static QList<InspectorCommand> s_commands{
               MozillaVPN::instance()->serverCountryModel();
           for (const ServerCountry& country : scm->countries()) {
             QJsonArray cityArray;
-            for (const ServerCity& city : country.cities()) {
+            for (const QString& cityName : country.cities()) {
+              const ServerCity& city = scm->findCity(country.code(), cityName);
+              if (!city.initialized()) {
+                continue;
+              }
               QJsonObject cityObj;
               cityObj["name"] = city.name();
               cityObj["localizedName"] =
@@ -681,33 +708,6 @@ static QList<InspectorCommand> s_commands{
                        obj["value"] = deviceArray;
                        return obj;
                      }},
-
-    InspectorCommand{
-        "reset_devices",
-        "Remove all the existing devices and add the current one if needed", 0,
-        [](InspectorHandler*, const QList<QByteArray>&) {
-          MozillaVPN* vpn = MozillaVPN::instance();
-          Q_ASSERT(vpn);
-
-          DeviceModel* dm = vpn->deviceModel();
-          Q_ASSERT(dm);
-
-          bool hasCurrentOne = false;
-          for (const Device& device : dm->devices()) {
-            if (device.isCurrentDevice(vpn->keys())) {
-              hasCurrentOne = true;
-              continue;
-            }
-
-            vpn->removeDeviceFromPublicKey(device.publicKey());
-          }
-
-          if (!hasCurrentOne) {
-            vpn->addCurrentDeviceAndRefreshData(false);
-          }
-
-          return QJsonObject();
-        }},
 
     InspectorCommand{"public_key",
                      "Retrieve the public key of the current device", 0,
@@ -819,7 +819,7 @@ static QList<InspectorCommand> s_commands{
 
     InspectorCommand{"force_rtl", "Force RTL layout", 0,
                      [](InspectorHandler*, const QList<QByteArray>&) {
-                       s_forceRTL = true;
+                       Localizer::instance()->forceRTL();
                        emit SettingsHolder::instance()->languageCodeChanged();
                        return QJsonObject();
                      }},
@@ -835,6 +835,13 @@ static QList<InspectorCommand> s_commands{
                      0,
                      [](InspectorHandler*, const QList<QByteArray>&) {
                        AddonManager::instance()->fetch();
+                       return QJsonObject();
+                     }},
+
+    InspectorCommand{"set_version_override", "Override the version string", 1,
+                     [](InspectorHandler*, const QList<QByteArray>& arguments) {
+                       QString versionOverride = QString(arguments[1]);
+                       Constants::setVersionOverride(versionOverride);
                        return QJsonObject();
                      }},
 };
@@ -883,6 +890,9 @@ void InspectorHandler::recv(const QByteArray& command) {
   Q_ASSERT(!parts.isEmpty());
 
   QString cmdName = parts[0].trimmed();
+  for (int i = 1; i < parts.length(); ++i) {
+    parts[i] = QUrl::fromPercentEncoding(parts[i]).toLocal8Bit();
+  }
 
   for (const InspectorCommand& command : s_commands) {
     if (cmdName == command.m_commandName) {
@@ -982,7 +992,7 @@ void InspectorHandler::networkRequestFinished(QNetworkReply* reply) {
 // static
 QString InspectorHandler::getObjectClass(const QObject* target) {
   if (target == nullptr) {
-    return "unkown";
+    return "Unknown";
   }
   auto metaObject = target->metaObject();
   return metaObject->className();
@@ -990,9 +1000,6 @@ QString InspectorHandler::getObjectClass(const QObject* target) {
 
 // static
 bool InspectorHandler::mockFreeTrial() { return s_mockFreeTrial; }
-
-// static
-bool InspectorHandler::forceRTL() { return s_forceRTL; }
 
 // static
 QString InspectorHandler::appVersionForUpdate() {

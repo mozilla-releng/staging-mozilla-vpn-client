@@ -11,11 +11,9 @@ import components 0.1
 
 
 VPNViewBase {
-    id: settingsList
+    id: vpnFlickable
     objectName: "settingsView"
 
-    //% "Settings"
-    _menuTitle: qsTrId("vpn.main.settings")
     _viewContentData: ColumnLayout {
         spacing: VPNTheme.theme.windowMargin
         Layout.fillWidth: true
@@ -35,12 +33,13 @@ VPNViewBase {
                     if (subscriptionManagementEnabled) {
                         VPNProfileFlow.start();
                     } else {
-                        VPNGleanDeprecated.recordGleanEvent("manageAccountClicked")
+                        MZGleanDeprecated.recordGleanEvent("manageAccountClicked")
                         Glean.sample.manageAccountClicked.record();
                         VPNUrlOpener.openUrlLabel("account");
                     }
                 }
                 _loaderVisible: VPNProfileFlow.state === VPNProfileFlow.StateLoading
+                Layout.topMargin: VPNTheme.theme.windowMargin / 2
 
             }
 
@@ -59,8 +58,6 @@ VPNViewBase {
             }
         }
 
-
-        // TODO: Move to subscription management
         ColumnLayout {
             Layout.fillWidth: true
             Layout.leftMargin: VPNTheme.theme.windowMargin /2
@@ -68,49 +65,57 @@ VPNViewBase {
             Layout.alignment: Qt.AlignHCenter
 
             VPNSettingsItem {
+                objectName: "privacySettings"
+                settingTitle: VPNI18n.SettingsPrivacySettings
+                imageLeftSrc: "qrc:/ui/resources/settings/privacy.svg"
+                imageRightSrc: "qrc:/nebula/resources/chevron.svg"
+                imageRightMirror: VPNLocalizer.isRightToLeft
+                onClicked: stackview.push("qrc:/ui/screens/settings/ViewPrivacy.qml")
+            }
+
+            VPNSettingsItem {
+                objectName: "appPermissionSettings"
+                settingTitle: VPNI18n.SettingsAppExclusionSettings
+                imageLeftSrc: "qrc:/ui/resources/settings/apppermissions.svg"
+                imageRightSrc: "qrc:/nebula/resources/chevron.svg"
+                imageRightMirror: VPNLocalizer.isRightToLeft
+                onClicked: stackview.push("qrc:/ui/screens/settings/appPermissions/ViewAppPermissions.qml")
+                visible: VPNFeatureList.get("splitTunnel").isSupported
+            }
+
+            VPNSettingsItem {
                 objectName: "settingsTipsAndTricks"
-                settingTitle: VPNl18n.TipsAndTricksSettingsEntryLabel
-                imageLeftSrc: "qrc:/nebula/resources/sparkles.svg"
+                settingTitle: VPNI18n.SettingsTipsAndTricksSettings
+                imageLeftSrc: "qrc:/ui/resources/settings/tipsandtrickssettings.svg"
                 imageRightSrc: "qrc:/nebula/resources/chevron.svg"
                 imageRightMirror: VPNLocalizer.isRightToLeft
                 onClicked: VPNNavigator.requestScreen(VPNNavigator.ScreenTipsAndTricks);
             }
 
             VPNSettingsItem {
-                objectName: "settingsNetworking"
-                settingTitle: VPNFeatureList.get("splitTunnel").isSupported ? qsTrId("vpn.settings.networking") : VPNl18n.CustomDNSSettingsDnsNavItem
-                imageLeftSrc: "qrc:/ui/resources/settings/networkSettings.svg"
+                objectName: "settingsDevice"
+
+                //% "My devices"
+                settingTitle: qsTrId("vpn.devices.myDevices")
+                imageLeftSrc: "qrc:/ui/resources/devices.svg"
                 imageRightSrc: "qrc:/nebula/resources/chevron.svg"
                 imageRightMirror: VPNLocalizer.isRightToLeft
-                onClicked: VPNFeatureList.get("splitTunnel").isSupported ? stackview.push("qrc:/ui/screens/settings/ViewNetworkSettings.qml", {
-                                                      //% "App permissions"
-                                                      _appPermissionsTitle: Qt.binding(() => qsTrId("vpn.settings.appPermissions2"))
-                                                  }) : stackview.push("qrc:/ui/screens/settings/dnsSettings/ViewAdvancedDNSSettings.qml")
+                onClicked: stackview.push("qrc:/ui/screens/devices/ViewDevices.qml")
             }
 
             VPNSettingsItem {
                 id: preferencesSetting
                 objectName: "settingsPreferences"
-                settingTitle: VPNl18n.SettingsSystemPreferences
+                settingTitle: VPNI18n.SettingsAppPreferences
                 imageLeftSrc: "qrc:/ui/resources/settings/preferences.svg"
                 imageRightSrc: "qrc:/nebula/resources/chevron.svg"
                 imageRightMirror: VPNLocalizer.isRightToLeft
                 onClicked: stackview.push("qrc:/ui/screens/settings/ViewPreferences.qml", {
-                                                    _startAtBootTitle: Qt.binding(() => VPNl18n.SettingsStartAtBootTitle),
+                                                    _startAtBootTitle: Qt.binding(() => VPNI18n.SettingsStartAtBootTitle),
                                                     _languageTitle:  Qt.binding(() => qsTrId("vpn.settings.language")),
                                                     _notificationsTitle:  Qt.binding(() => qsTrId("vpn.settings.notifications")),
                                                     _menuTitle: Qt.binding(() => preferencesSetting.settingTitle)
                                                   })
-            }
-
-            VPNSettingsItem {
-                objectName: "settingsDeviceList"
-                //% "My devices"
-                settingTitle: qsTrId("vpn.devices.myDevices")
-                imageLeftSrc: "qrc:/nebula/resources/devices.svg"
-                imageRightSrc: "qrc:/nebula/resources/chevron.svg"
-                imageRightMirror: VPNLocalizer.isRightToLeft
-                onClicked: stackview.push("qrc:/ui/screens/devices/ViewDevices.qml")
             }
 
             VPNSettingsItem {
@@ -122,7 +127,7 @@ VPNViewBase {
                 imageRightSrc: "qrc:/nebula/resources/chevron.svg"
                 imageRightMirror: VPNLocalizer.isRightToLeft
                 onClicked: {
-                    VPNGleanDeprecated.recordGleanEvent("getHelpClickedViewSettings");
+                    MZGleanDeprecated.recordGleanEvent("getHelpClickedViewSettings");
                     Glean.sample.getHelpClickedViewSettings.record();
                     VPNNavigator.requestScreen(VPNNavigator.ScreenGetHelp);
                 }
@@ -188,7 +193,7 @@ VPNViewBase {
         }
     }
     Component.onCompleted: {
-        VPNGleanDeprecated.recordGleanEvent("settingsViewOpened");
+        MZGleanDeprecated.recordGleanEvent("settingsViewOpened");
         Glean.sample.settingsViewOpened.record();
     }
 }

@@ -14,6 +14,7 @@ class QJsonObject;
 class Server final {
  public:
   Server();
+  Server(const QString& countryCode, const QString& cityName);
   Server(const Server& other);
   Server& operator=(const Server& other);
   ~Server();
@@ -39,17 +40,15 @@ class Server final {
 
   const QString& socksName() const { return m_socksName; }
 
-  qint64 cooldownTimeout() const { return m_cooldownTimeout; }
-  void setCooldownTimeout(qint64 timeout);
-
-  uint32_t latency() const { return m_latency; }
-  void setLatency(uint32_t msec) { m_latency = msec; }
-
   uint32_t weight() const { return m_weight; }
 
   uint32_t choosePort() const;
 
   uint32_t multihopPort() const { return m_multihopPort; }
+
+  const QString& countryCode() const { return m_countryCode; }
+
+  const QString& cityName() const { return m_cityName; }
 
   bool forcePort(uint32_t port);
 
@@ -73,8 +72,8 @@ class Server final {
   QString m_socksName;
   uint32_t m_weight = 0;
   uint32_t m_multihopPort = 0;
-  qint64 m_cooldownTimeout = 0;
-  uint32_t m_latency = 0;
+  QString m_countryCode;
+  QString m_cityName;
 };
 
 #endif  // SERVER_H

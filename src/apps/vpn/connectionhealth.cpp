@@ -8,6 +8,7 @@
 #include <QDateTime>
 #include <QRandomGenerator>
 
+#include "controller.h"
 #include "glean/generated/metrics.h"
 #include "gleandeprecated.h"
 #include "leakdetector.h"
@@ -65,7 +66,7 @@ ConnectionHealth::ConnectionHealth() : m_dnsPingSender(QHostAddress()) {
           &ConnectionHealth::applicationStateChanged);
 
   connect(&m_dnsPingSender, &DnsPingSender::recvPing, this,
-          &ConnectionHealth::dnsPingReceived);
+          &ConnectionHealth::dnsPingReceived, Qt::QueuedConnection);
 
   connect(&m_dnsPingTimer, &QTimer::timeout, this, [this]() {
     m_dnsPingSequence++;

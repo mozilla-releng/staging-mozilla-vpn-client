@@ -7,11 +7,16 @@
 # statically.
 qt_add_executable(mozillavpn MANUAL_FINALIZATION)
 
+if(NOT MSVC)
+  target_compile_options(mozillavpn PRIVATE -Wall -Werror -Wno-conversion)
+endif()
+
 target_link_libraries(mozillavpn PRIVATE
     Qt6::Quick
     Qt6::Test
     Qt6::WebSockets
     Qt6::Widgets
+    Qt6::Svg
 )
 
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten"
@@ -39,7 +44,8 @@ include(shared/sources.cmake)
 include(apps/vpn/cmake/sources.cmake)
 include(apps/vpn/cmake/sentry.cmake)
 
-target_link_libraries(mozillavpn PRIVATE shared-sources mozillavpn-sources glean lottie nebula translations vpnglean)
+target_link_libraries(mozillavpn PRIVATE shared-sources mozillavpn-sources glean lottie nebula translations qtglean)
+target_link_libraries(mozillavpn PUBLIC ${CMAKE_DL_LIBS})
 
 target_compile_definitions(mozillavpn PRIVATE "$<$<CONFIG:Debug>:MZ_DEBUG>")
 target_compile_definitions(mozillavpn PRIVATE "MZ_$<UPPER_CASE:${MZ_PLATFORM_NAME}>")

@@ -15,8 +15,8 @@
 #include "androidutils.h"
 #include "androidvpnactivity.h"
 #include "errorhandler.h"
+#include "i18nstrings.h"
 #include "ipaddress.h"
-#include "l18nstrings.h"
 #include "leakdetector.h"
 #include "logger.h"
 #include "models/device.h"
@@ -64,8 +64,12 @@ AndroidController::AndroidController() {
   connect(
       activity, &AndroidVPNActivity::eventConnected, this,
       [this](const QString& parcelBody) {
+        auto doc = QJsonDocument::fromJson(parcelBody.toUtf8());
+        qlonglong time = doc.object()["time"].toVariant().toLongLong();
         Q_UNUSED(parcelBody);
-        emit connected(m_serverPublicKey);
+        emit connected(
+            m_serverPublicKey,
+            time > 0 ? QDateTime::fromMSecsSinceEpoch(time) : QDateTime());
       },
       Qt::QueuedConnection);
   connect(activity, &AndroidVPNActivity::eventDisconnected, this,
@@ -157,7 +161,8 @@ void AndroidController::activate(const HopConnection& hop, const Device* device,
   // Find a Server as Fallback in the Same Location in case
   // the original one becomes unstable / unavailable
   auto vpn = MozillaVPN::instance();
-  const QList<Server> serverList = vpn->currentServer()->exitServers();
+  const QList<Server> serverList =
+      vpn->controller()->currentServer().exitServers();
   Server* fallbackServer = nullptr;
   foreach (auto item, serverList) {
     if (item.publicKey() != hop.m_server.publicKey()) {
@@ -190,22 +195,23 @@ void AndroidController::activate(const HopConnection& hop, const Device* device,
   // Build the "canned" Notification messages
   // They will be used in case this config will be re-enabled
   // to show the appropriate notification messages
-  QString localizedCityName = vpn->currentServer()->localizedExitCityName();
+  QString localizedCityName =
+      vpn->controller()->currentServer().localizedExitCityName();
   args["city"] = localizedCityName;
 
   QJsonObject messages;
   messages["productName"] = qtTrId("vpn.main.productName");
-  messages["connectedHeader"] = L18nStrings::instance()->t(
-      L18nStrings::NotificationsVPNConnectedTitle);  // Connected
+  messages["connectedHeader"] = I18nStrings::instance()->t(
+      I18nStrings::NotificationsVPNConnectedTitle);  // Connected
   messages["connectedBody"] =
-      L18nStrings::instance()
-          ->t(L18nStrings::NotificationsVPNConnectedMessage)
+      I18nStrings::instance()
+          ->t(I18nStrings::NotificationsVPNConnectedMessage)
           .arg(localizedCityName);
-  messages["disconnectedHeader"] = L18nStrings::instance()->t(
-      L18nStrings::NotificationsVPNDisconnectedTitle);
+  messages["disconnectedHeader"] = I18nStrings::instance()->t(
+      I18nStrings::NotificationsVPNDisconnectedTitle);
   messages["disconnectedBody"] =
-      L18nStrings::instance()
-          ->t(L18nStrings::NotificationsVPNDisconnectedMessage)
+      I18nStrings::instance()
+          ->t(I18nStrings::NotificationsVPNDisconnectedMessage)
           .arg(localizedCityName);
   args["messages"] = messages;
 

@@ -3,10 +3,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 const assert = require('assert');
-const constants = require('./constants.js');
 const {URL} = require('node:url');
 const http = require('http')
 const queries = require('./queries.js');
+const addonServer = require('./servers/addon.js');
 
 let client;
 
@@ -59,6 +59,12 @@ module.exports = {
     client.close();
   },
 
+  async activateViaToggle() {
+    await this.waitForQueryAndClick(
+        queries.screenHome.CONTROLLER_TOGGLE.visible().prop(
+            'state', 'stateOff'));
+  },
+
   async activate(awaitConnectionOkay = false) {
     const json = await this._writeCommand('activate');
     assert(
@@ -99,9 +105,9 @@ module.exports = {
 
   async waitForInitialView() {
     await this.waitForQuery(queries.screenInitialize.GET_HELP_LINK.visible());
-    assert(await this.query(queries.screenInitialize.GET_STARTED.visible()));
-    assert(
-        await this.query(queries.screenInitialize.LEARN_MORE_LINK.visible()));
+    assert(await this.query(queries.screenInitialize.SIGN_UP_BUTTON.visible()));
+    assert(await this.query(
+        queries.screenInitialize.ALREADY_A_SUBSCRIBER_LINK.visible()));
   },
 
   async forceHeartbeatFailure() {
@@ -149,14 +155,16 @@ module.exports = {
   },
 
   async copyToClipboard(text) {
-    const json = await this._writeCommand(`copy_to_clipboard ${text}`);
+    const json = await this._writeCommand(
+        `copy_to_clipboard ${encodeURIComponent(text)}`);
     assert(
-      !('type' in json) || (json.type === 'copy_to_clipboard' && !('error' in json)),
-      `Command failed: ${json.error}`);
+        !('type' in json) ||
+            (json.type === 'copy_to_clipboard' && !('error' in json)),
+        `Command failed: ${json.error}`);
   },
 
   async query(id) {
-    const json = await this._writeCommand(`query ${id}`);
+    const json = await this._writeCommand(`query ${encodeURIComponent(id)}`);
     assert(
         json.type === 'query' && !('error' in json),
         `Command failed: ${json.error}`);
@@ -171,7 +179,7 @@ module.exports = {
 
   async clickOnQuery(id) {
     assert(await this.query(id), 'Clicking on an non-existing element?!?');
-    const json = await this._writeCommand(`click ${id}`);
+    const json = await this._writeCommand(`click ${encodeURIComponent(id)}`);
     assert(
         json.type === 'click' && !('error' in json),
         `Command failed: ${json.error}`);
@@ -180,6 +188,11 @@ module.exports = {
   async waitForQueryAndClick(id) {
     await this.waitForQuery(id);
     await this.clickOnQuery(id);
+  },
+
+  async waitForQueryAndWriteInTextField(id, value) {
+    await this.waitForQuery(id);
+    await this.setQueryProperty(id, 'text', value);
   },
 
   async clickOnNotification() {
@@ -208,7 +221,8 @@ module.exports = {
   },
 
   async getVPNProperty(id, property) {
-    const json = await this._writeCommand(`property ${id} ${property}`);
+    const json = await this._writeCommand(
+        `property ${encodeURIComponent(id)} ${encodeURIComponent(property)}`);
     assert(
         json.type === 'property' && !('error' in json),
         `Command failed: ${json.error}`);
@@ -219,7 +233,8 @@ module.exports = {
     assert(
         await this.query(id),
         'Property checks must be done on existing elements');
-    const json = await this._writeCommand(`query_property ${id} ${property}`);
+    const json = await this._writeCommand(`query_property ${
+        encodeURIComponent(id)} ${encodeURIComponent(property)}`);
     assert(
         json.type === 'query_property' && !('error' in json),
         `Command failed: ${json.error}`);
@@ -228,7 +243,8 @@ module.exports = {
 
   async setVPNProperty(id, property, value) {
     const json =
-        await this._writeCommand(`set_property ${id} ${property} ${value}`);
+        await this._writeCommand(`set_property ${encodeURIComponent(id)} ${
+            encodeURIComponent(property)} ${encodeURIComponent(value)}`);
     assert(
         json.type === 'set_property' && !('error' in json),
         `Command failed: ${json.error}`);
@@ -239,7 +255,8 @@ module.exports = {
         await this.query(id),
         'Property checks must be done on existing elements');
     const json = await this._writeCommand(
-        `set_query_property ${id} ${property} ${value}`);
+        `set_query_property ${encodeURIComponent(id)} ${
+            encodeURIComponent(property)} ${encodeURIComponent(value)}`);
     assert(
         json.type === 'set_query_property' && !('error' in json),
         `Command failed: ${json.error}`);
@@ -288,12 +305,12 @@ module.exports = {
       await this.flipFeatureOff('inAppAuthentication');
     }
 
-    // This method must be called when the client is on the "Get Started" view.
+    // This method must be called when the client is on the "Get Started"view.
     await this.waitForInitialView();
     await this.setVPNProperty('VPNUrlOpener', 'lastUrl', '');
 
     // Click on get started and wait for authenticating view
-    await this.clickOnQuery(queries.screenInitialize.GET_STARTED.visible());
+    await this.clickOnQuery(queries.screenInitialize.SIGN_UP_BUTTON.visible());
 
     if (!wasm) {
       await this.waitForCondition(async () => {
@@ -319,7 +336,8 @@ module.exports = {
         req.on('close', resolve);
         req.on('error', error => {
           throw new error(
-              `Unable to connect to ${urlObj.hostname} to complete the auth`);
+              `Unable to connect to ${urlObj.hostname} to complete the
+              auth`);
         });
         req.end();
       });
@@ -328,10 +346,6 @@ module.exports = {
     // Wait for VPN client screen to move from spinning wheel to next screen
     await this.waitForVPNProperty('VPN', 'userState', 'UserAuthenticated');
     await this.waitForQuery(queries.screenPostAuthentication.BUTTON.visible());
-
-    // Clean-up extra devices (otherwise test account will fill up in a
-    // heartbeats)
-    await this._maybeRemoveExistingDevices();
 
     if (clickOnPostAuthenticate) {
       await this.waitForQuery(queries.global.SCREEN_LOADER.ready());
@@ -357,7 +371,7 @@ module.exports = {
     await this.waitForInitialView();
 
     // Click on get started and wait for authenticating view
-    await this.clickOnQuery(queries.screenInitialize.GET_STARTED.visible());
+    await this.clickOnQuery(queries.screenInitialize.SIGN_UP_BUTTON.visible());
     await this.waitForQuery(
         queries.screenAuthenticationInApp.AUTH_START_TEXT_INPUT.visible());
     await this.setQueryProperty(
@@ -381,10 +395,6 @@ module.exports = {
     await this.waitForVPNProperty('VPN', 'userState', 'UserAuthenticated');
     await this.waitForQuery(queries.screenPostAuthentication.BUTTON.visible());
 
-    // Clean-up extra devices (otherwise test account will fill up in a
-    // heartbeats)
-    await this._maybeRemoveExistingDevices();
-
     if (clickOnPostAuthenticate) {
       await this.clickOnQuery(
           queries.screenPostAuthentication.BUTTON.visible());
@@ -405,7 +415,8 @@ module.exports = {
   },
 
   async isFeatureFlippedOn(key) {
-    const json = await this._writeCommand(`is_feature_flipped_on ${key}`);
+    const json = await this._writeCommand(
+        `is_feature_flipped_on ${encodeURIComponent(key)}`);
     assert(
         json.type === 'is_feature_flipped_on' && !('error' in json),
         `Command failed: ${json.error}`);
@@ -413,7 +424,8 @@ module.exports = {
   },
 
   async isFeatureFlippedOff(key) {
-    const json = await this._writeCommand(`is_feature_flipped_off ${key}`);
+    const json = await this._writeCommand(
+        `is_feature_flipped_off ${encodeURIComponent(key)}`);
     assert(
         json.type === 'is_feature_flipped_off' && !('error' in json),
         `Command failed: ${json.error}`);
@@ -421,28 +433,31 @@ module.exports = {
   },
 
   async flipFeatureOn(key) {
-    const json = await this._writeCommand(`flip_on_feature ${key}`);
+    const json =
+        await this._writeCommand(`flip_on_feature ${encodeURIComponent(key)}`);
     assert(
         json.type === 'flip_on_feature' && !('error' in json),
         `Command failed: ${json.error}`);
   },
 
   async flipFeatureOff(key) {
-    const json = await this._writeCommand(`flip_off_feature ${key}`);
+    const json =
+        await this._writeCommand(`flip_off_feature ${encodeURIComponent(key)}`);
     assert(
         json.type === 'flip_off_feature' && !('error' in json),
         `Command failed: ${json.error}`);
   },
 
   async setSetting(key, value) {
-    const json = await this._writeCommand(`set_setting ${key} ${value}`);
+    const json = await this._writeCommand(
+        `set_setting ${encodeURIComponent(key)} ${encodeURIComponent(value)}`);
     assert(
         json.type === 'set_setting' && !('error' in json),
         `Command failed: ${json.error}`);
   },
 
   async getSetting(key) {
-    const json = await this._writeCommand(`setting ${key}`);
+    const json = await this._writeCommand(`setting ${encodeURIComponent(key)}`);
     assert(
         json.type === 'setting' && !('error' in json),
         `Command failed: ${json.error}`);
@@ -490,6 +505,14 @@ module.exports = {
     return json.value;
   },
 
+  async messages() {
+    const json = await this._writeCommand('messages');
+    assert(
+        json.type === 'messages' && !('error' in json),
+        `Command failed: ${json.error}`);
+    return json.value;
+  },
+
   async screenCapture() {
     const json = await this._writeCommand('screen_capture');
     assert(
@@ -515,8 +538,8 @@ module.exports = {
   },
 
   async sendPushMessageDeviceDeleted(key) {
-    const json =
-        await this._writeCommand(`send_push_message_device_deleted ${key}`);
+    const json = await this._writeCommand(
+        `send_push_message_device_deleted ${encodeURIComponent(key)}`);
     assert(
         json.type === 'send_push_message_device_deleted' && !('error' in json),
         `Command failed: ${json.error}`);
@@ -529,7 +552,7 @@ module.exports = {
     _lastAddonLoadingCompleted = false;
 
     await this.setSetting(
-        'addonCustomServerAddress', `${constants.ADDON_URL}/${addonPath}/`);
+        'addonCustomServerAddress', `${addonServer.url}/${addonPath}/`);
     await this.setSetting('addonCustomServer', 'true');
 
     const json = await this._writeCommand('reset_addons');
@@ -546,7 +569,7 @@ module.exports = {
     _lastAddonLoadingCompleted = false;
 
     await this.setSetting(
-        'addonCustomServerAddress', `${constants.ADDON_URL}/${addonPath}/`);
+        'addonCustomServerAddress', `${addonServer.url}/${addonPath}/`);
     await this.setSetting('addonCustomServer', 'true');
 
     const json = await this._writeCommand('fetch_addons');
@@ -555,6 +578,15 @@ module.exports = {
         `Command failed: ${json.error}`);
 
     await this.waitForCondition(() => _lastAddonLoadingCompleted);
+  },
+
+  async setVersionOverride(versionOverride) {
+    const json = await this._writeCommand(
+        `set_version_override ${encodeURIComponent(versionOverride)}`);
+    assert(
+        json.type === 'set_version_override' && !('error' in json),
+        `Command failed: ${json.error}`);
+    return json.value;
   },
 
   // Internal methods.
@@ -573,29 +605,5 @@ module.exports = {
 
       wr(json);
     }
-  },
-
-  async _maybeRemoveExistingDevices() {
-    const json = await this._writeCommand('devices');
-    assert(
-        json.type === 'devices' && !('error' in json),
-        `Command failed: ${json.error}`);
-
-    if (json.value.find(device => device.currentDevice)) {
-      return;
-    }
-
-    const addJson = await this._writeCommand('reset_devices');
-    assert(
-        addJson.type === 'reset_devices' && !('error' in addJson),
-        `Command failed: ${addJson.error}`);
-
-    await this.waitForCondition(async () => {
-      const json = await this._writeCommand('devices');
-      assert(
-          json.type === 'devices' && !('error' in json),
-          `Command failed: ${json.error}`);
-      return json.value.find(device => device.currentDevice);
-    });
   },
 };

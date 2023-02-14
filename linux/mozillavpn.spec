@@ -1,5 +1,5 @@
 %define _srcdir %(git rev-parse --show-toplevel)
-%define _version %(cat %{_srcdir}/version.pri | grep :VERSION | awk '{print $NF}')
+%{!?_version: %define _version %(cat %{_srcdir}/version.pri | grep :VERSION | awk '{print $NF}')}
 
 Name:      mozillavpn
 Version:   %{_version}
@@ -16,7 +16,7 @@ Requires:  qt6-qt5compat >= 6.0
 Requires:  wireguard-tools
 
 BuildRequires: cargo
-BuildRequires: golang >= 1.13
+BuildRequires: golang >= 1.18
 BuildRequires: libsecret-devel
 BuildRequires: openssl-devel
 BuildRequires: polkit-devel

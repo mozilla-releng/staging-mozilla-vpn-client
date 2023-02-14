@@ -26,12 +26,14 @@ find_library(FW_SERVICEMGMT ServiceManagement)
 find_library(FW_SECURITY Security)
 find_library(FW_COREWLAN CoreWLAN)
 find_library(FW_NETWORK Network)
+find_library(FW_USER_NOTIFICATIONS UserNotifications)
 
 target_link_libraries(mozillavpn PRIVATE ${FW_SYSTEMCONFIG})
 target_link_libraries(mozillavpn PRIVATE ${FW_SERVICEMGMT})
 target_link_libraries(mozillavpn PRIVATE ${FW_SECURITY})
 target_link_libraries(mozillavpn PRIVATE ${FW_COREWLAN})
 target_link_libraries(mozillavpn PRIVATE ${FW_NETWORK})
+target_link_libraries(mozillavpn PRIVATE ${FW_USER_NOTIFICATIONS})
 
 # MacOS platform source files
 target_sources(mozillavpn PRIVATE
@@ -69,8 +71,6 @@ target_sources(mozillavpn PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/apps/vpn/platforms/macos/macosstartatbootwatcher.h
     ${CMAKE_CURRENT_SOURCE_DIR}/apps/vpn/platforms/macos/macossystemtraynotificationhandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/apps/vpn/platforms/macos/macossystemtraynotificationhandler.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/apps/vpn/wgquickprocess.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/apps/vpn/wgquickprocess.h
     ${CMAKE_CURRENT_SOURCE_DIR}/apps/vpn/platforms/macos/macosnetworkwatcher.mm
     ${CMAKE_CURRENT_SOURCE_DIR}/apps/vpn/platforms/macos/macosnetworkwatcher.h
     ${CMAKE_CURRENT_SOURCE_DIR}/apps/vpn/platforms/macos/macosstatusicon.mm
@@ -94,15 +94,6 @@ target_sources(mozillavpn PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/apps/vpn/update/balrog.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/apps/vpn/update/balrog.h
 )
-
-# Compile and link the signature library.
-add_rust_library(signature
-    PACKAGE_DIR ${CMAKE_SOURCE_DIR}/signature
-    BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}
-    CRATE_NAME signature
-)
-target_compile_definitions(mozillavpn PRIVATE MVPN_SIGNATURE)
-target_link_libraries(mozillavpn PRIVATE signature)
 
 # Build the Wireguard Go tunnel
 # FIXME: this builds in the source directory.

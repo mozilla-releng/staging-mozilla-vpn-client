@@ -11,6 +11,7 @@
 #include <array>
 
 #include "appconstants.h"
+#include "controller.h"
 #include "leakdetector.h"
 #include "logger.h"
 #include "mozillavpn.h"
@@ -94,6 +95,8 @@ const QString StatusIcon::iconString() {
 
   switch (vpn->controller()->state()) {
     case Controller::StateOn:
+      [[fallthrough]];
+    case Controller::StateSilentSwitching:
       m_animatedIconTimer.stop();
       return LOGO_GENERIC_ON;
       break;

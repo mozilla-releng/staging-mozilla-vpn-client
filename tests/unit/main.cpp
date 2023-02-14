@@ -3,10 +3,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "appconstants.h"
+#include "glean/mzglean.h"
 #include "helper.h"
-#include "l18nstrings.h"
+#include "i18nstrings.h"
 #include "leakdetector.h"
 #include "loghandler.h"
+#include "networkrequest.h"
 #include "settingsholder.h"
 
 QVector<TestHelper::NetworkConfig> TestHelper::networkConfig;
@@ -29,6 +31,27 @@ QObject* TestHelper::findTest(const QString& name) {
 
 TestHelper::TestHelper() { testList.append(this); }
 
+// static
+bool TestHelper::networkRequestGeneric(NetworkRequest* request) {
+  Q_ASSERT(!TestHelper::networkConfig.isEmpty());
+  TestHelper::NetworkConfig nc = TestHelper::networkConfig.takeFirst();
+
+  QTimer::singleShot(0, request, [request, nc]() {
+    request->deleteLater();
+
+    if (nc.m_status == TestHelper::NetworkConfig::Failure) {
+      emit request->requestFailed(
+          QNetworkReply::NetworkError::HostNotFoundError, "");
+    } else {
+      Q_ASSERT(nc.m_status == TestHelper::NetworkConfig::Success);
+
+      emit request->requestCompleted(nc.m_body);
+    }
+  });
+
+  return true;
+}
+
 int main(int argc, char* argv[]) {
 #ifdef MZ_DEBUG
   LeakDetector leakDetector;
@@ -47,8 +70,13 @@ int main(int argc, char* argv[]) {
 
   int failures = 0;
 
-  L18nStrings::initialize();
+  NetworkRequest::setRequestHandler(
+      TestHelper::networkRequestDelete, TestHelper::networkRequestGet,
+      TestHelper::networkRequestPost, TestHelper::networkRequestPostIODevice);
+
+  I18nStrings::initialize();
   LogHandler::enableStderr();
+  MZGlean::registerLogHandler(LogHandler::rustMessageHandler);
 
   // If arguments were passed, then run a subset of tests.
   QStringList args = app.arguments();

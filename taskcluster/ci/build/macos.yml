@@ -12,11 +12,10 @@ task-defaults:
     requires-level: 1
     worker-type: b-macos
     fetches:
+        fetch:
+            - miniconda-osx
         toolchain:
             - qt-mac
-    scopes:
-        - project:releng:services/tooltool/api/download/public
-        - project:releng:services/tooltool/api/download/internal
     worker:
         taskcluster-proxy: true
         chain-of-trust: true
@@ -43,6 +42,5 @@ macos/opt:
         symbol: B
     requires-level: 3 
     scopes:
-        - project:releng:services/tooltool/api/download/public
-        - project:releng:services/tooltool/api/download/internal
-        - secrets:get:project/mozillavpn/tokens
+        - secrets:get:project/mozillavpn/level-1/sentry
+

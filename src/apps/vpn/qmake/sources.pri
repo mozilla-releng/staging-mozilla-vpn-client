@@ -17,6 +17,7 @@ SOURCES += \
         apps/vpn/addons/conditionwatchers/addonconditionwatcherjavascript.cpp \
         apps/vpn/addons/conditionwatchers/addonconditionwatcherlocales.cpp \
         apps/vpn/addons/conditionwatchers/addonconditionwatchertime.cpp \
+        apps/vpn/addons/conditionwatchers/addonconditionwatchertranslationthreshold.cpp \
         apps/vpn/addons/conditionwatchers/addonconditionwatchertriggertimesecs.cpp \
         apps/vpn/addons/manager/addondirectory.cpp \
         apps/vpn/addons/manager/addonindex.cpp \
@@ -35,7 +36,6 @@ SOURCES += \
         apps/vpn/captiveportal/captiveportalnotifier.cpp \
         apps/vpn/captiveportal/captiveportalrequest.cpp \
         apps/vpn/captiveportal/captiveportalrequesttask.cpp \
-        apps/vpn/collator.cpp \
         apps/vpn/command.cpp \
         apps/vpn/commandlineparser.cpp \
         apps/vpn/commands/commandactivate.cpp \
@@ -67,7 +67,6 @@ SOURCES += \
         apps/vpn/externalophandler.cpp \
         apps/vpn/frontend/navigator.cpp \
         apps/vpn/frontend/navigatorreloader.cpp \
-        apps/vpn/glean/glean.cpp \
         apps/vpn/keyregenerator.cpp \
         apps/vpn/imageproviderfactory.cpp \
         apps/vpn/inspector/inspectorhandler.cpp \
@@ -76,7 +75,6 @@ SOURCES += \
         apps/vpn/inspector/inspectorwebsocketconnection.cpp \
         apps/vpn/inspector/inspectorwebsocketserver.cpp \
         apps/vpn/ipaddresslookup.cpp \
-        apps/vpn/localizer.cpp \
         apps/vpn/logoutobserver.cpp \
         apps/vpn/main.cpp \
         apps/vpn/models/device.cpp \
@@ -84,7 +82,6 @@ SOURCES += \
         apps/vpn/models/featuremodel.cpp \
         apps/vpn/models/feedbackcategorymodel.cpp \
         apps/vpn/models/keys.cpp \
-        apps/vpn/models/licensemodel.cpp \
         apps/vpn/models/location.cpp \
         apps/vpn/models/recentconnections.cpp \
         apps/vpn/models/server.cpp \
@@ -96,7 +93,7 @@ SOURCES += \
         apps/vpn/models/supportcategorymodel.cpp \
         apps/vpn/models/user.cpp \
         apps/vpn/mozillavpn.cpp \
-        apps/vpn/networkrequest.cpp \
+        apps/vpn/mozillavpn_p.cpp \
         apps/vpn/networkwatcher.cpp \
         apps/vpn/notificationhandler.cpp \
         apps/vpn/pinghelper.cpp \
@@ -113,7 +110,7 @@ SOURCES += \
         apps/vpn/releasemonitor.cpp \
         apps/vpn/serveri18n.cpp \
         apps/vpn/serverlatency.cpp \
-        apps/vpn/signature.cpp \
+        apps/vpn/settingswatcher.cpp \
         apps/vpn/statusicon.cpp \
         apps/vpn/tasks/account/taskaccount.cpp \
         apps/vpn/tasks/adddevice/taskadddevice.cpp \
@@ -127,8 +124,6 @@ SOURCES += \
         apps/vpn/tasks/getsubscriptiondetails/taskgetsubscriptiondetails.cpp \
         apps/vpn/tasks/controlleraction/taskcontrolleraction.cpp \
         apps/vpn/tasks/createsupportticket/taskcreatesupportticket.cpp \
-        apps/vpn/tasks/function/taskfunction.cpp \
-        apps/vpn/tasks/group/taskgroup.cpp \
         apps/vpn/tasks/heartbeat/taskheartbeat.cpp \
         apps/vpn/tasks/ipfinder/taskipfinder.cpp \
         apps/vpn/tasks/products/taskproducts.cpp \
@@ -137,7 +132,6 @@ SOURCES += \
         apps/vpn/tasks/sendfeedback/tasksendfeedback.cpp \
         apps/vpn/tasks/servers/taskservers.cpp \
         apps/vpn/telemetry.cpp \
-        apps/vpn/theme.cpp \
         apps/vpn/tutorial/tutorial.cpp \
         apps/vpn/tutorial/tutorialstep.cpp \
         apps/vpn/tutorial/tutorialstepbefore.cpp \
@@ -166,6 +160,7 @@ HEADERS += \
         apps/vpn/addons/conditionwatchers/addonconditionwatchertime.h \
         apps/vpn/addons/conditionwatchers/addonconditionwatchertimeend.h \
         apps/vpn/addons/conditionwatchers/addonconditionwatchertimestart.h \
+        apps/vpn/addons/conditionwatchers/addonconditionwatchertranslationthreshold.h \
         apps/vpn/addons/conditionwatchers/addonconditionwatchertriggertimesecs.h \
         apps/vpn/addons/manager/addondirectory.h \
         apps/vpn/addons/manager/addonindex.h \
@@ -186,7 +181,6 @@ HEADERS += \
         apps/vpn/captiveportal/captiveportalnotifier.h \
         apps/vpn/captiveportal/captiveportalrequest.h \
         apps/vpn/captiveportal/captiveportalrequesttask.h \
-        apps/vpn/collator.h \
         apps/vpn/command.h \
         apps/vpn/commandlineparser.h \
         apps/vpn/commands/commandactivate.h \
@@ -220,7 +214,6 @@ HEADERS += \
         apps/vpn/externalophandler.h \
         apps/vpn/frontend/navigator.h \
         apps/vpn/frontend/navigatorreloader.h \
-        apps/vpn/glean/glean.h \
         apps/vpn/keyregenerator.h \
         apps/vpn/imageproviderfactory.h \
         apps/vpn/inspector/inspectorhandler.h \
@@ -236,7 +229,6 @@ HEADERS += \
         apps/vpn/models/featuremodel.h \
         apps/vpn/models/feedbackcategorymodel.h \
         apps/vpn/models/keys.h \
-        apps/vpn/models/licensemodel.h \
         apps/vpn/models/location.h \
         apps/vpn/models/recentconnections.h \
         apps/vpn/models/server.h \
@@ -248,7 +240,7 @@ HEADERS += \
         apps/vpn/models/supportcategorymodel.h \
         apps/vpn/models/user.h \
         apps/vpn/mozillavpn.h \
-        apps/vpn/networkrequest.h \
+        apps/vpn/mozillavpn_p.h \
         apps/vpn/networkwatcher.h \
         apps/vpn/networkwatcherimpl.h \
         apps/vpn/notificationhandler.h \
@@ -266,7 +258,7 @@ HEADERS += \
         apps/vpn/releasemonitor.h \
         apps/vpn/serveri18n.h \
         apps/vpn/serverlatency.h \
-        apps/vpn/signature.h \
+        apps/vpn/settingswatcher.h \
         apps/vpn/statusicon.h \
         apps/vpn/tasks/account/taskaccount.h \
         apps/vpn/tasks/adddevice/taskadddevice.h \
@@ -280,8 +272,6 @@ HEADERS += \
         apps/vpn/tasks/getsubscriptiondetails/taskgetsubscriptiondetails.h \
         apps/vpn/tasks/controlleraction/taskcontrolleraction.h \
         apps/vpn/tasks/createsupportticket/taskcreatesupportticket.h \
-        apps/vpn/tasks/function/taskfunction.h \
-        apps/vpn/tasks/group/taskgroup.h \
         apps/vpn/tasks/heartbeat/taskheartbeat.h \
         apps/vpn/tasks/ipfinder/taskipfinder.h \
         apps/vpn/tasks/products/taskproducts.h \
@@ -290,7 +280,6 @@ HEADERS += \
         apps/vpn/tasks/sendfeedback/tasksendfeedback.h \
         apps/vpn/tasks/servers/taskservers.h \
         apps/vpn/telemetry.h \
-        apps/vpn/theme.h \
         apps/vpn/tutorial/tutorial.h \
         apps/vpn/tutorial/tutorialstep.h \
         apps/vpn/tutorial/tutorialstepbefore.h \
@@ -304,7 +293,6 @@ HEADERS += \
 
 
 RESOURCES += apps/vpn/ui/resources.qrc
-RESOURCES += apps/vpn/ui/license.qrc
 RESOURCES += apps/vpn/ui/ui.qrc
 RESOURCES += apps/vpn/resources/certs/certs.qrc
 RESOURCES += apps/vpn/resources/public_keys/public_keys.qrc

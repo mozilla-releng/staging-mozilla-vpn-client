@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import QtQuick 2.0
-import QtQuick.Controls 2.5
 
 import Mozilla.VPN 1.0
 
@@ -28,7 +27,7 @@ VPNAlert {
                 PropertyChanges {
                     target: alertBox
                     alertType: alertTypes.success
-                    alertText: VPNl18n.InAppAuthEmailTokenResentAlert
+                    alertText: VPNI18n.InAppAuthEmailTokenResentAlert
                     visible: true
                 }
             },
@@ -139,7 +138,7 @@ VPNAlert {
                 PropertyChanges {
                     target: alertBox
                     alertType: alertTypes.success
-                    alertText: VPNl18n.GlobalCopied
+                    alertText: VPNI18n.GlobalCopied
                     visible: true
                 }
             }

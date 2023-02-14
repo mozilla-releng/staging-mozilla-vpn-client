@@ -6,6 +6,7 @@
 
 #include <QMetaEnum>
 
+#include "controller.h"
 #include "leakdetector.h"
 #include "logger.h"
 #include "mozillavpn.h"
@@ -128,7 +129,8 @@ void NetworkWatcher::unsecuredNetwork(const QString& networkName,
 
   Controller::State state = vpn->controller()->state();
   if (state == Controller::StateOn || state == Controller::StateConnecting ||
-      state == Controller::StateSwitching) {
+      state == Controller::StateSwitching ||
+      state == Controller::StateSilentSwitching) {
     logger.debug() << "VPN on. Ignoring unsecured network";
     return;
   }

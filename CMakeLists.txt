@@ -12,8 +12,8 @@ if(NOT (IS_MULTI_CONFIG OR DEFINED CMAKE_BUILD_TYPE))
     message("Setting build type ${CMAKE_BUILD_TYPE}")
 endif()
 
-project("Mozilla VPN" VERSION 2.14.0 LANGUAGES C CXX
-        DESCRIPTION "A fast, secure and easy to use VPN. Built by the makers of Firefox."
+project("Mozilla VPN" VERSION 2.15.0 LANGUAGES C CXX
+        DESCRIPTION "Mozilla VPN"
         HOMEPAGE_URL "https://vpn.mozilla.org"
 )
 
@@ -84,7 +84,7 @@ if(${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17)
     cmake_policy(SET CMP0099 OLD)
 endif()
 
-find_program(PYTHON_EXECUTABLE NAMES python3)
+find_program(PYTHON_EXECUTABLE NAMES python3 python)
 if(MSVC)
     include(src/apps/vpn/cmake/msvc.cmake)
 endif()
@@ -111,6 +111,7 @@ find_package(Qt6 COMPONENTS
     WebSockets
     Widgets
     Xml
+    Svg
 )
 
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten" AND
@@ -129,7 +130,7 @@ add_subdirectory(src)
 # Glean.js
 add_subdirectory(glean)
 # Glean.rs
-add_subdirectory(vpnglean)
+add_subdirectory(qtglean)
 add_subdirectory(lottie)
 add_subdirectory(nebula)
 add_subdirectory(translations)
@@ -151,6 +152,7 @@ if(NOT CMAKE_CROSSCOMPILING)
     add_subdirectory(tests/nativemessaging EXCLUDE_FROM_ALL)
     add_subdirectory(tests/unit EXCLUDE_FROM_ALL)
     add_subdirectory(tests/qml EXCLUDE_FROM_ALL)
+    add_subdirectory(src/apps/unit_tests EXCLUDE_FROM_ALL)
 
     # Dummy Testing Client
     add_subdirectory(tests/dummyvpn EXCLUDE_FROM_ALL)

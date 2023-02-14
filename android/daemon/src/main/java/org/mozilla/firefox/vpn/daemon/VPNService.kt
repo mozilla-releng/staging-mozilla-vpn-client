@@ -7,7 +7,6 @@ package org.mozilla.firefox.vpn.daemon
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.os.CountDownTimer
 import android.os.IBinder
 import android.system.OsConstants
 import com.wireguard.android.util.SharedLibraryLoader
@@ -19,7 +18,6 @@ import com.wireguard.config.Peer
 import com.wireguard.crypto.Key
 import org.json.JSONObject
 import java.util.*
-import org.mozilla.firefox.vpn.daemon.GleanMetrics.Sample
 
 class VPNService : android.net.VpnService() {
     private val tag = "VPNService"
@@ -30,38 +28,22 @@ class VPNService : android.net.VpnService() {
     private var mConfig: JSONObject? = null
     private var mConnectionTime: Long = 0
     private var mAlreadyInitialised = false
-    private val mGleanControllerStateTimerInterval: Long = 3 * 60 * 60 * 1000 // 3hrs
-    private val mConnectionHealth = ConnectionHealth(this)
-
-    private val mGleanControllerStateTimer = object : CountDownTimer(
-        mGleanControllerStateTimerInterval,
-        mGleanControllerStateTimerInterval / 4
-    ) {
-        override fun onTick(millisUntilFinished: Long) { }
-        override fun onFinish() {
-            if (!isUp) {
-                Sample.controllerStateOff.record()
-            } else {
-                // When we're stil connected, rescheudle.
-                this.start()
-                Sample.controllerStateOn.record()
-            }
-        }
-    }
+    val mConnectionHealth = ConnectionHealth(this)
     private var mCityname = ""
 
     private var currentTunnelHandle = -1
         set(value: Int) {
             field = value
             if (value > -1) {
+                mConnectionTime = System.currentTimeMillis()
                 Log.i(tag, "Dispatch Daemon State -> connected")
                 mBinder.dispatchEvent(
                     VPNServiceBinder.EVENTS.connected,
                     JSONObject().apply {
+                        put("time", mConnectionTime)
                         put("city", mCityname)
                     }.toString()
                 )
-                mConnectionTime = System.currentTimeMillis()
                 return
             }
             Log.i(tag, "Dispatch Daemon State -> disconnected")
@@ -254,7 +236,6 @@ class VPNService : android.net.VpnService() {
 
         // Go foreground
         CannedNotification(mConfig)?.let { mNotificationHandler.show(it) }
-        mGleanControllerStateTimer.start()
 
         if (useFallbackServer) {
             mConnectionHealth.start(
@@ -321,7 +302,6 @@ class VPNService : android.net.VpnService() {
         // so we should get rid of it. :)
         val shouldClearNotification = !mBinder.isClientAttached
         stopForeground(shouldClearNotification)
-        mGleanControllerStateTimer.cancel()
         mConnectionHealth.stop()
         // Clear the notification message, so the content
         // is not "disconnected" in case we connect from a non-client.

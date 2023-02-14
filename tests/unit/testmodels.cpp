@@ -13,7 +13,9 @@
 #include "localizer.h"
 #include "models/device.h"
 #include "models/devicemodel.h"
+#include "models/feedbackcategorymodel.h"
 #include "models/keys.h"
+#include "models/location.h"
 #include "models/recentconnections.h"
 #include "models/servercity.h"
 #include "models/servercountry.h"
@@ -588,11 +590,11 @@ void TestModels::recentConnectionBasic() {
   QVERIFY(rcMultiHop->isEmpty());
   QCOMPARE(rcMultiHop->rowCount(QModelIndex()), 0);
 
-  MozillaVPN::instance()->currentServer()->initialize();
+  MozillaVPN::instance()->serverData()->initialize();
 
   // First entry (single hop)
   {
-    MozillaVPN::instance()->currentServer()->changeServer("a", "b");
+    MozillaVPN::instance()->serverData()->changeServer("a", "b");
 
     QVERIFY(rcSingleHop->isEmpty());
     QCOMPARE(rcSingleHop->rowCount(QModelIndex()), 0);
@@ -603,7 +605,7 @@ void TestModels::recentConnectionBasic() {
 
   // Second entry (single hop)
   {
-    MozillaVPN::instance()->currentServer()->changeServer("c", "d");
+    MozillaVPN::instance()->serverData()->changeServer("c", "d");
 
     QVERIFY(!rcSingleHop->isEmpty());
     QCOMPARE(rcSingleHop->rowCount(QModelIndex()), 1);
@@ -626,7 +628,7 @@ void TestModels::recentConnectionBasic() {
 
   // Reinsering the same connection: no changes
   {
-    MozillaVPN::instance()->currentServer()->changeServer("c", "d");
+    MozillaVPN::instance()->serverData()->changeServer("c", "d");
 
     QVERIFY(!rcSingleHop->isEmpty());
     QCOMPARE(rcSingleHop->rowCount(QModelIndex()), 1);
@@ -649,7 +651,7 @@ void TestModels::recentConnectionBasic() {
 
   // Third entry as the first one: move on top
   {
-    MozillaVPN::instance()->currentServer()->changeServer("a", "b");
+    MozillaVPN::instance()->serverData()->changeServer("a", "b");
 
     QVERIFY(!rcSingleHop->isEmpty());
     QCOMPARE(rcSingleHop->rowCount(QModelIndex()), 1);
@@ -672,7 +674,7 @@ void TestModels::recentConnectionBasic() {
 
   // 4th entry
   {
-    MozillaVPN::instance()->currentServer()->changeServer("e", "f");
+    MozillaVPN::instance()->serverData()->changeServer("e", "f");
 
     QVERIFY(!rcSingleHop->isEmpty());
     QCOMPARE(rcSingleHop->rowCount(QModelIndex()), 2);
@@ -707,7 +709,7 @@ void TestModels::recentConnectionBasic() {
 
   // First multi-hop connection: still empty model
   {
-    MozillaVPN::instance()->currentServer()->changeServer("c", "d", "e", "f");
+    MozillaVPN::instance()->serverData()->changeServer("c", "d", "e", "f");
 
     QVERIFY(!rcSingleHop->isEmpty());
     QCOMPARE(rcSingleHop->rowCount(QModelIndex()), 2);
@@ -718,7 +720,7 @@ void TestModels::recentConnectionBasic() {
 
   // Second mult-hop connection
   {
-    MozillaVPN::instance()->currentServer()->changeServer("a", "b", "c", "d");
+    MozillaVPN::instance()->serverData()->changeServer("a", "b", "c", "d");
 
     QVERIFY(!rcSingleHop->isEmpty());
     QCOMPARE(rcSingleHop->rowCount(QModelIndex()), 2);
@@ -741,7 +743,7 @@ void TestModels::recentConnectionBasic() {
 
   // Let's add a few single-hop entries. We cannot reach the max value.
   for (int i = 1; i < 2 * AppConstants::RECENT_CONNECTIONS_MAX_COUNT; ++i) {
-    MozillaVPN::instance()->currentServer()->changeServer(
+    MozillaVPN::instance()->serverData()->changeServer(
         QString("%1").arg('a' + i), QString("%1").arg('b' + i));
   }
 
@@ -764,7 +766,7 @@ void TestModels::recentConnectionBasic() {
 
   // Let's add a few multi-hop entries. We cannot reach the max value.
   for (int i = 1; i < 2 * AppConstants::RECENT_CONNECTIONS_MAX_COUNT; ++i) {
-    MozillaVPN::instance()->currentServer()->changeServer(
+    MozillaVPN::instance()->serverData()->changeServer(
         QString("%1").arg('a' + i), QString("%1").arg('b' + i),
         QString("%1").arg('c' + 1), QString("%1").arg('d' + 1));
   }
@@ -898,17 +900,17 @@ void TestModels::recentConnectionSaveAndRestore() {
   QCOMPARE(rcMultiHop->rowCount(QModelIndex()), 0);
   QVERIFY(rcMultiHop->isEmpty());
 
-  MozillaVPN::instance()->currentServer()->initialize();
+  MozillaVPN::instance()->serverData()->initialize();
 
   // Let's populate the models
   {
-    MozillaVPN::instance()->currentServer()->changeServer("a", "b");
-    MozillaVPN::instance()->currentServer()->changeServer("c", "d");
-    MozillaVPN::instance()->currentServer()->changeServer("e", "f");
+    MozillaVPN::instance()->serverData()->changeServer("a", "b");
+    MozillaVPN::instance()->serverData()->changeServer("c", "d");
+    MozillaVPN::instance()->serverData()->changeServer("e", "f");
 
-    MozillaVPN::instance()->currentServer()->changeServer("c", "d", "e", "f");
-    MozillaVPN::instance()->currentServer()->changeServer("a", "b", "c", "d");
-    MozillaVPN::instance()->currentServer()->changeServer("g", "b", "c", "d");
+    MozillaVPN::instance()->serverData()->changeServer("c", "d", "e", "f");
+    MozillaVPN::instance()->serverData()->changeServer("a", "b", "c", "d");
+    MozillaVPN::instance()->serverData()->changeServer("g", "b", "c", "d");
   }
 
   // Let's check the data
@@ -1475,7 +1477,7 @@ void TestModels::serverCountryModelFromJson_data() {
   countries.replace(0, d);
   obj.insert("countries", countries);
   QTest::addRow("good with one empty city")
-      << QJsonDocument(obj).toJson() << true << 0
+      << QJsonDocument(obj).toJson() << true << 1
       << QVariant("serverCountryName") << QVariant("serverCountryCode")
       << QVariant(QList<QVariant>{
              QStringList{"serverCityName", "serverCityName", "0"}});
@@ -1672,11 +1674,17 @@ void TestModels::serverCountryModelPick() {
     SettingsHolder settingsHolder;
     Localizer l;
 
-    QStringList tuple = m.pickRandom();
-    QCOMPARE(tuple.length(), 3);
-    QCOMPARE(tuple.at(0), "serverCountryCode");
-    QCOMPARE(tuple.at(1), "serverCityName");
-    QCOMPARE(tuple.at(2), "serverCityName");  // Localized?
+    QList<QVariant> results = m.recommendedLocations(1);
+    QCOMPARE(results.length(), 1);
+
+    QVariant qv = results.first();
+    QVERIFY(qv.canConvert<const ServerCity*>());
+
+    const ServerCity* city = qv.value<const ServerCity*>();
+    QVERIFY(city != nullptr);
+    QCOMPARE(city->country(), "serverCountryCode");
+    QCOMPARE(city->name(), "serverCityName");
+    QCOMPARE(city->localizedName(), "serverCityName");  // Localized?
   }
 }
 

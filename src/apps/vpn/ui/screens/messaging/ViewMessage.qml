@@ -11,6 +11,7 @@ import components 0.1
 import Mozilla.VPN.qmlcomponents 1.0
 
 VPNViewBase {
+    id: vpnFlickable
     property var message
 
     property Component titleComponent: Component {
@@ -48,7 +49,7 @@ VPNViewBase {
         VPNIconButton {
             id: deleteButton
 
-            accessibleName: VPNl18n.InAppMessagingDeleteMessage
+            accessibleName: VPNI18n.InAppMessagingDeleteMessage
             anchors.rightMargin: 32
 
             VPNIcon {
@@ -106,23 +107,23 @@ VPNViewBase {
                         id: badgeInfo
 
                         property var warningBadge: {
-                            'badgeText': VPNl18n.InAppMessagingWarningBadge,
+                            'badgeText': VPNI18n.InAppMessagingWarningBadge,
                             'badgeTheme': VPNTheme.theme.orangeBadge
                         };
                         property var criticalBadge: {
-                            'badgeText': VPNl18n.InAppMessagingCriticalBadge,
+                            'badgeText': VPNI18n.InAppMessagingCriticalBadge,
                             'badgeTheme': VPNTheme.theme.redBadge
                         };
                         property var newUpdateBadge: {
-                            'badgeText': VPNl18n.InAppMessagingNewUpdateBadge,
+                            'badgeText': VPNI18n.InAppMessagingNewUpdateBadge,
                             'badgeTheme': VPNTheme.theme.greenBadge
                         };
                         property var whatsNewBadge: {
-                            'badgeText': VPNl18n.InAppMessagingWhatsNewBadge,
+                            'badgeText': VPNI18n.InAppMessagingWhatsNewBadge,
                             'badgeTheme': VPNTheme.theme.blueBadge
                         };
                         property var surveyBadge: {
-                            'badgeText': VPNl18n.InAppMessagingSurveyBadge,
+                            'badgeText': VPNI18n.InAppMessagingSurveyBadge,
                             'badgeTheme': VPNTheme.theme.blueBadge
                         };
                     }

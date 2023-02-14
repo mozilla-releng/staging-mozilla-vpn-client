@@ -12,11 +12,12 @@
 #  error No supported
 #endif
 
-#define FEATURE_SIMPLE(id, name, releaseVersion, flippableOn, flippableOff, \
-                       dependencies, callback)                              \
-  FEATURE(id, name, false, L18nStrings::Empty, L18nStrings::Empty,          \
-          L18nStrings::Empty, "", "", "", releaseVersion, flippableOn,      \
-          flippableOff, dependencies, callback)
+FEATURE(gleanRust,             // Feature ID
+        "Glean Rust SDK",      // Feature name
+        FeatureCallback_true,  // Can be flipped on
+        FeatureCallback_true,  // Can be flipped off
+        QStringList(),         // feature dependencies
+        FeatureCallback_true)
 
 // The app must implement its feature list file.
 #include "appfeaturelist.h"

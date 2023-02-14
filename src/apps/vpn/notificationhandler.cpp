@@ -5,8 +5,9 @@
 #include "notificationhandler.h"
 
 #include "appconstants.h"
+#include "controller.h"
 #include "externalophandler.h"
-#include "l18nstrings.h"
+#include "i18nstrings.h"
 #include "leakdetector.h"
 #include "logger.h"
 #include "mozillavpn.h"
@@ -29,6 +30,8 @@
 #endif
 
 #include "systemtraynotificationhandler.h"
+
+constexpr int NOTIFICATION_TIME_MSEC = 2000;
 
 namespace {
 Logger logger("NotificationHandler");
@@ -96,17 +99,16 @@ void NotificationHandler::showNotification() {
     return;
   }
 
-  QString title;
-  QString message;
-  QString countryCode = vpn->currentServer()->exitCountryCode();
-  QString localizedCityName = vpn->currentServer()->localizedExitCityName();
+  // We want to show notifications about the location in use by the controller,
+  // which could be different than MozillaVPN::serverData in the rare case of a
+  // server-switch request processed in the meantime.
+  QString localizedCityName =
+      vpn->controller()->currentServer().localizedExitCityName();
   QString localizedCountryName =
-      vpn->serverCountryModel()->localizedCountryName(countryCode);
+      vpn->controller()->currentServer().localizedExitCountryName();
 
   switch (vpn->controller()->state()) {
     case Controller::StateOn:
-      m_connected = true;
-
       if (m_switching) {
         m_switching = false;
 
@@ -116,10 +118,11 @@ void NotificationHandler::showNotification() {
         }
 
         QString localizedPreviousExitCountryName =
-            vpn->serverCountryModel()->localizedCountryName(
-                vpn->currentServer()->previousExitCountryCode());
+            vpn->controller()
+                ->currentServer()
+                .localizedPreviousExitCountryName();
         QString localizedPreviousExitCityName =
-            vpn->currentServer()->localizedPreviousExitCityName();
+            vpn->controller()->currentServer().localizedPreviousExitCityName();
 
         if ((localizedPreviousExitCountryName == localizedCountryName) &&
             (localizedPreviousExitCityName == localizedCityName)) {
@@ -127,25 +130,37 @@ void NotificationHandler::showNotification() {
           // https://github.com/mozilla-mobile/mozilla-vpn-client/issues/1719
           return;
         }
+
         // "VPN Switched Servers"
-        title = L18nStrings::instance()->t(
-            L18nStrings::NotificationsVPNSwitchedServersTitle);
-        message = L18nStrings::instance()
-                      ->t(L18nStrings::NotificationsVPNSwitchedServersMessage)
-                      .arg(localizedPreviousExitCityName, localizedCityName);
-      } else {
+        notifyInternal(
+            None,
+            I18nStrings::instance()->t(
+                I18nStrings::NotificationsVPNSwitchedServersTitle),
+            I18nStrings::instance()
+                ->t(I18nStrings::NotificationsVPNSwitchedServersMessage)
+                .arg(localizedPreviousExitCityName, localizedCityName),
+            NOTIFICATION_TIME_MSEC);
+        return;
+      }
+
+      if (!m_connected) {
+        m_connected = true;
+
         if (!SettingsHolder::instance()->connectionChangeNotification()) {
           // Notifications for ConnectionChange are disabled
           return;
         }
+
         // "VPN Connected"
-        title = L18nStrings::instance()->t(
-            L18nStrings::NotificationsVPNConnectedTitle);
-        message = L18nStrings::instance()
-                      ->t(L18nStrings::NotificationsVPNConnectedMessage)
-                      .arg(localizedCityName);
+        notifyInternal(None,
+                       I18nStrings::instance()->t(
+                           I18nStrings::NotificationsVPNConnectedTitle),
+                       I18nStrings::instance()
+                           ->t(I18nStrings::NotificationsVPNConnectedMessage)
+                           .arg(localizedCityName),
+                       NOTIFICATION_TIME_MSEC);
       }
-      break;
+      return;
 
     case Controller::StateOff:
       if (m_connected) {
@@ -155,40 +170,43 @@ void NotificationHandler::showNotification() {
           return;
         }
         // "VPN Disconnected"
-        title = L18nStrings::instance()->t(
-            L18nStrings::NotificationsVPNDisconnectedTitle);
-        message = L18nStrings::instance()
-                      ->t(L18nStrings::NotificationsVPNDisconnectedMessage)
-                      .arg(localizedCityName);
+        notifyInternal(None,
+                       I18nStrings::instance()->t(
+                           I18nStrings::NotificationsVPNDisconnectedTitle),
+                       I18nStrings::instance()
+                           ->t(I18nStrings::NotificationsVPNDisconnectedMessage)
+                           .arg(localizedCityName),
+                       NOTIFICATION_TIME_MSEC);
       }
-      break;
+      return;
+
+    case Controller::StateSilentSwitching:
+      m_connected = true;
+      m_switching = false;
+      return;
 
     case Controller::StateSwitching:
       m_connected = true;
       m_switching = true;
-      break;
+      return;
 
     default:
-      break;
+      return;
   }
 
-  Q_ASSERT(title.isEmpty() == message.isEmpty());
-
-  if (!title.isEmpty()) {
-    notifyInternal(None, title, message, 2000);
-  }
+  Q_ASSERT(false);
 }
 
 void NotificationHandler::captivePortalBlockNotificationRequired() {
   logger.debug() << "Captive portal block notification shown";
 
-  L18nStrings* l18nStrings = L18nStrings::instance();
-  Q_ASSERT(l18nStrings);
+  I18nStrings* i18nStrings = I18nStrings::instance();
+  Q_ASSERT(i18nStrings);
 
   QString title =
-      l18nStrings->t(L18nStrings::NotificationsCaptivePortalBlockTitle);
+      i18nStrings->t(I18nStrings::NotificationsCaptivePortalBlockTitle);
   QString message =
-      l18nStrings->t(L18nStrings::NotificationsCaptivePortalBlockMessage2);
+      i18nStrings->t(I18nStrings::NotificationsCaptivePortalBlockMessage2);
 
   notifyInternal(CaptivePortalBlock, title, message,
                  AppConstants::CAPTIVE_PORTAL_ALERT_MSEC);
@@ -197,13 +215,13 @@ void NotificationHandler::captivePortalBlockNotificationRequired() {
 void NotificationHandler::captivePortalUnblockNotificationRequired() {
   logger.debug() << "Captive portal unblock notification shown";
 
-  L18nStrings* l18nStrings = L18nStrings::instance();
-  Q_ASSERT(l18nStrings);
+  I18nStrings* i18nStrings = I18nStrings::instance();
+  Q_ASSERT(i18nStrings);
 
   QString title =
-      l18nStrings->t(L18nStrings::NotificationsCaptivePortalUnblockTitle);
+      i18nStrings->t(I18nStrings::NotificationsCaptivePortalUnblockTitle);
   QString message =
-      l18nStrings->t(L18nStrings::NotificationsCaptivePortalUnblockMessage2);
+      i18nStrings->t(I18nStrings::NotificationsCaptivePortalUnblockMessage2);
 
   notifyInternal(CaptivePortalUnblock, title, message,
                  AppConstants::CAPTIVE_PORTAL_ALERT_MSEC);
@@ -213,13 +231,13 @@ void NotificationHandler::unsecuredNetworkNotification(
     const QString& networkName) {
   logger.debug() << "Unsecured network notification shown";
 
-  L18nStrings* l18nStrings = L18nStrings::instance();
-  Q_ASSERT(l18nStrings);
+  I18nStrings* i18nStrings = I18nStrings::instance();
+  Q_ASSERT(i18nStrings);
 
   QString title =
-      l18nStrings->t(L18nStrings::NotificationsUnsecuredNetworkTitle);
+      i18nStrings->t(I18nStrings::NotificationsUnsecuredNetworkTitle);
   QString message =
-      l18nStrings->t(L18nStrings::NotificationsUnsecuredNetworkMessage)
+      i18nStrings->t(I18nStrings::NotificationsUnsecuredNetworkMessage)
           .arg(networkName);
 
   notifyInternal(UnsecuredNetwork, title, message,
@@ -234,16 +252,16 @@ void NotificationHandler::serverUnavailableNotification(bool pingRecieved) {
     return;
   }
 
-  L18nStrings* l18nStrings = L18nStrings::instance();
-  Q_ASSERT(l18nStrings);
+  I18nStrings* i18nStrings = I18nStrings::instance();
+  Q_ASSERT(i18nStrings);
 
-  QString title = l18nStrings->t(L18nStrings::ServerUnavailableModalHeaderText);
+  QString title = i18nStrings->t(I18nStrings::ServerUnavailableModalHeaderText);
   QString message =
       pingRecieved
-          ? l18nStrings->t(
-                L18nStrings::
+          ? i18nStrings->t(
+                I18nStrings::
                     ServerUnavailableNotificationBodyTextFireWallBlocked)
-          : l18nStrings->t(L18nStrings::ServerUnavailableNotificationBodyText);
+          : i18nStrings->t(I18nStrings::ServerUnavailableNotificationBodyText);
 
   notifyInternal(ServerUnavailable, title, message,
                  AppConstants::SERVER_UNAVAILABLE_ALERT_MSEC);
@@ -265,13 +283,13 @@ void NotificationHandler::newInAppMessageNotification(const QString& title,
 void NotificationHandler::subscriptionNotFoundNotification() {
   logger.debug() << "Subscription not found notification";
 
-  L18nStrings* l18nStrings = L18nStrings::instance();
-  Q_ASSERT(l18nStrings);
+  I18nStrings* i18nStrings = I18nStrings::instance();
+  Q_ASSERT(i18nStrings);
 
   QString notificationTitle =
-      l18nStrings->t(L18nStrings::MobileOnboardingPanelOneTitle);
+      i18nStrings->t(I18nStrings::MobileOnboardingPanelOneTitle);
   QString notificationBody =
-      l18nStrings->t(L18nStrings::NotificationsSubscriptionNotFound);
+      i18nStrings->t(I18nStrings::NotificationsSubscriptionNotFound);
 
   notifyInternal(SubscriptionNotFound, notificationTitle, notificationBody,
                  AppConstants::DEFAULT_OS_NOTIFICATION_MSEC);

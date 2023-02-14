@@ -8,6 +8,7 @@
 #include <QTextStream>
 
 #include "commandlineparser.h"
+#include "controller.h"
 #include "leakdetector.h"
 #include "mozillavpn.h"
 
@@ -74,7 +75,7 @@ int CommandActivate::run(QStringList& tokens) {
         loop.exit();
       }
     });
-    vpn.controller()->activate();
+    vpn.controller()->activate(*vpn.serverData());
     loop.exec();
     vpn.controller()->disconnect();
 
