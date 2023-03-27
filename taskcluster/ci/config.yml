@@ -1,0 +1,27 @@
+---
+trust-domain: "mozillavpn"
+task-priority: low
+
+taskgraph:
+  cached-task-prefix: "mozillavpn.v2.staging-mozilla-vpn-client"
+  repositories:
+    staging_mozilla_vpn_client:
+      name: "staging-mozilla-vpn-client"
+
+workers:
+  aliases:
+    b-linux:
+      provisioner: '{trust-domain}-{level}'
+      implementation: docker-worker
+      os: linux
+      worker-type: '{alias}-gcp'
+    images:
+      provisioner: '{trust-domain}-{level}'
+      implementation: docker-worker
+      os: linux
+      worker-type: '{alias}-gcp'
+    t-linux-large:
+      provisioner: '{trust-domain}-t'
+      implementation: docker-worker
+      os: linux
+      worker-type: '{alias}-gcp'
