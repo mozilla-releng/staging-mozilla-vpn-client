@@ -159,3 +159,21 @@ def format_message(config, tasks):
         }
         task["notify"]["content"]["matrix"] = matrix_message
         yield task
+
+
+@transforms.add
+def add_release_promotion_routes(config, tasks):
+    prefix = f"mozillavpn.v2.{config.params['project']}.release"
+    rev = config.params["head_rev"]
+    build_date = config.params["moz_build_date"]
+
+    for task in tasks:
+        phase = task["attributes"]["shipping-phase"]
+
+        routes = [
+            f"{prefix}.{phase}.{rev}",
+            f"{prefix}.{phase}.{build_date}",
+            f"{prefix}.{phase}.latest",
+        ]
+        task.setdefault("routes", []).extend(routes)
+        yield task
