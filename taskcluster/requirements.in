@@ -1,5 +1,5 @@
 # For instructions on managing dependencies, see:
 # https://taskcluster-taskgraph.readthedocs.io/en/latest/howto/bootstrap-taskgraph.html
 
-taskcluster-taskgraph >= 5.1.1
-mozilla-taskgraph ~= 1.0.0
+taskcluster-taskgraph@git+https://github.com/taskcluster/taskgraph@refs/pull/346/head
+mozilla-taskgraph ~= 1.0.1
