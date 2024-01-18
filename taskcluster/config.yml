@@ -103,7 +103,7 @@ workers:
             provisioner: scriptworker-k8s
             implementation: scriptworker-shipit
             os: scriptworker
-            worker-type: 'mozillavpn-{level}-shipit'
+            worker-type: 'mozillavpn-{level}-shipit-dev'
         succeed:
             provisioner: built-in
             implementation: succeed
