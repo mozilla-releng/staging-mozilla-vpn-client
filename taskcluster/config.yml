@@ -49,7 +49,7 @@ workers:
             provisioner: 'mozillavpn-{level}'
             implementation: generic-worker
             os: windows
-            worker-type: b-win2022
+            worker-type: b-win2022-alpha
         b-macos:
             provisioner: 'releng-hardware'
             implementation: generic-worker
