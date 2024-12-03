@@ -8,8 +8,8 @@ transforms:
     - mozillavpn_taskgraph.transforms.requires_level:transforms
     - mozillavpn_taskgraph.transforms.beetmover_mac_upstream:transforms
     - mozilla_taskgraph.transforms.scriptworker.release_artifacts:transforms
-    - mozillavpn_taskgraph.transforms.beetmover:transforms
     - mozillavpn_taskgraph.transforms.add_version:transforms
+    - mozillavpn_taskgraph.transforms.beetmover:transforms
     - taskgraph.transforms.task:transforms
 
 kind-dependencies:
