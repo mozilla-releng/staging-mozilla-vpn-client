@@ -89,6 +89,6 @@ tasks:
         run-on-tasks-for: [action]
         release-artifacts: [mozillavpn.deb]
         dependencies:
-            build: build-linux64/release-deb
+            repackage: "filled-by-transform: beetmover.py"
         attributes:
             build-type: linux64/release-deb
