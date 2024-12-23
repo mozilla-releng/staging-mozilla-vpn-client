@@ -13,6 +13,7 @@ transforms:
 kind-dependencies:
     - beetmover-promote
     - build
+    - repackage
     - signing
 
 task-defaults:
@@ -34,6 +35,19 @@ tasks:
             copy-attributes: true
             with-attributes:
                 shipping-phase: promote-client
+                exclude: ["*.deb"]
+
+    linux-deb:
+        beetmover-action: "direct-push-to-bucket"
+        attributes:
+            build-type: linux64/release-deb
+        from-deps:
+            with-attributes:
+                shipping-phase: promote-client
+        dependencies:
+            repackage: "filled-by-transform: beetmover.py"
+        # The linux-deb release-artifacts are dynamically generated in the beetmover transform
+        release-artifacts: []
 
     # Beetmoverscript doesn't support the `push-to-release` action for VPN
     # addons yet, as they use a slightly different directory structure on

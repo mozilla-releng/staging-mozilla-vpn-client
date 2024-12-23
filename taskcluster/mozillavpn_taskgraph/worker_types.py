@@ -120,6 +120,7 @@ def build_push_apk_payload(config, task, task_def):
             Required("build-id"): str,
             Optional("hash-type"): str,
             Optional("platform"): str,
+            Optional("exclude"): [str],
         },
         Required("upstream-artifacts"): [
             {
@@ -149,6 +150,8 @@ def build_scriptworker_beetmover_payload(config, task, task_def):
         "hashType": worker["release-properties"].get("hash-type", "sha512"),
         "platform": worker["release-properties"]["platform"],
     }
+    if "exclude" in worker["release-properties"]:
+        release_properties["exclude"] = worker["release-properties"]["exclude"]
     scope_prefix = "project:mozillavpn:releng:beetmover:"
     task_def["scopes"] = [
         "{prefix}bucket:{bucket_scope}".format(

@@ -27,6 +27,7 @@ beetmover_schema = Schema(
         Required("run-on-tasks-for"): task_description_schema["run-on-tasks-for"],
         Required("worker-type"): task_description_schema["worker-type"],
         Optional("task-from"): task_description_schema["task-from"],
+        Optional("exclude"): [str]
     }
 )
 
@@ -150,6 +151,8 @@ def add_beetmover_worker_config(config, tasks):
             },
             "upstream-artifacts": upstream_artifacts,
         }
+        if "exclude" in task["attributes"]:
+            worker["release-properties"]["exclude"] = task["attributes"]["exclude"]
 
         destination_paths = []
 
