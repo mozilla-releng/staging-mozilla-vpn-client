@@ -4,6 +4,7 @@
 
 #include "webextensionadapter.h"
 
+#include <QFileInfo>
 #include <QHostAddress>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -11,7 +12,6 @@
 #include <QMetaEnum>
 #include <QTcpSocket>
 #include <QWindow>
-#include <functional>
 
 #include "connectionhealth.h"
 #include "controller.h"
@@ -23,17 +23,25 @@
 #include "models/servercountrymodel.h"
 #include "models/serverdata.h"
 #include "mozillavpn.h"
-#if defined MZ_PROXY_ENABLED
-#  include "proxycontroller.h"
-#endif
 #include "qmlengineholder.h"
 #include "settingsholder.h"
 #include "tasks/controlleraction/taskcontrolleraction.h"
 #include "taskscheduler.h"
-#include "webextensionadapter.h"
+#include "webextensiontelemetry.h"
+
+#if defined(MZ_WINDOWS)
+#  include "platforms/windows/windowsutils.h"
+#endif
+
+#if defined(MZ_LINUX) && !defined(MZ_FLATPAK)
+#  include <QFileInfo>
+#endif
+
+#ifdef MZ_WINDOWS
+#  include "interventions/killernetwork.h"
+#endif
 
 namespace {
-
 // See https://en.cppreference.com/w/cpp/utility/variant/visit
 template <class... Ts>
 struct match : Ts... {
@@ -65,9 +73,6 @@ WebExtensionAdapter::WebExtensionAdapter(QObject* parent)
           &WebExtensionAdapter::writeState);
   connect(vpn->connectionHealth(), &ConnectionHealth::stabilityChanged, this,
           &WebExtensionAdapter::writeState);
-
-  mProxyStateChanged = vpn->proxyController()->stateBindable().subscribe(
-      [this]() { serializeStatus(); });
 
   m_commands = QList<RequestType>({
       RequestType{"activate",
@@ -131,12 +136,48 @@ WebExtensionAdapter::WebExtensionAdapter(QObject* parent)
                     obj["featurelist"] = serializeFeaturelist();
                     return obj;
                   }},
-
       RequestType{"status",
                   [this](const QJsonObject&) {
                     QJsonObject obj;
                     obj["status"] = serializeStatus();
                     return obj;
+                  }},
+      RequestType{"telemetry",
+                  [](const QJsonObject& data) {
+                    auto info = WebextensionTelemetry::fromJson(data);
+                    if (info.has_value()) {
+                      WebextensionTelemetry::recordTelemetry(info.value());
+                    }
+                    return QJsonObject{};
+                  }},
+      RequestType{"session_start",
+                  [](const QJsonObject& data) {
+                    WebextensionTelemetry::startSession();
+                    return QJsonObject{};
+                  }},
+      RequestType{"session_stop",
+                  [](const QJsonObject& data) {
+                    WebextensionTelemetry::stopSession();
+                    return QJsonObject{};
+                  }},
+      RequestType{"interventions",
+                  [](const QJsonObject&) {
+                    QJsonObject out;
+                    QJsonArray interventions;
+#ifdef MZ_WINDOWS
+                    if (Intervention::KillerNetwork::systemAffected()) {
+                      interventions.append(Intervention::KillerNetwork::id);
+                    }
+#endif
+                    out["interventions"] = interventions;
+                    return out;
+                  }},
+      RequestType{"settings",
+                  [this](const QJsonObject& data) {
+                    if (data["settings"].isObject()) {
+                      applySettings(data["settings"].toObject());
+                    }
+                    return QJsonObject{{"settings", serializeSettings()}};
                   }},
   });
 }
@@ -178,29 +219,6 @@ QJsonObject WebExtensionAdapter::serializeStatus() {
   }
   obj["vpn"] = asString(vpn->controller()->state());
   obj["connectionHealth"] = asString(vpn->connectionHealth()->stability());
-#if defined MZ_PROXY_ENABLED
-  {
-    auto* proxyController = vpn->proxyController();
-    QJsonObject p;
-    std::visit(match{
-                   [&p](ProxyController::Stopped s) {
-                     p["available"] = false;
-                     p["url"] = "";
-                   },
-                   [&p](ProxyController::Started s) {
-                     p["available"] = true;
-                     p["url"] = s.url.toString();
-                   },
-               },
-               proxyController->state());
-    obj["localProxy"] = p;
-  }
-#else
-  QJsonObject p;
-  p["available"] = false;
-  p["url"] = "";
-  obj["localProxy"] = p;
-#endif
 
   return obj;
 }
@@ -209,7 +227,18 @@ QJsonObject WebExtensionAdapter::serializeFeaturelist() {
   auto out = QJsonObject();
   out["webExtension"] =
       Feature::get(Feature::Feature_webExtension)->isSupported();
-  out["localProxy"] = Feature::get(Feature::Feature_localProxy)->isSupported();
+
+  // Detect the localProxy feature by checking the running services.
+#if defined(MZ_LINUX) && !defined(MZ_FLATPAK)
+  out["localProxy"] = QFileInfo::exists(Constants::SOCKSPROXY_UNIX_PATH);
+#elif defined(MZ_WINDOWS)
+  // TODO: Need to check if the service is running.
+  out["localProxy"] =
+      WindowsUtils::getServiceStatus(Constants::SOCKSPROXY_SERVICE_NAME);
+#else
+  out["localProxy"] = false;
+#endif
+
   return out;
 }
 
@@ -269,4 +298,18 @@ void WebExtensionAdapter::serializeServerCountry(ServerCountryModel* model,
   }
 
   obj["countries"] = countries;
+}
+
+QJsonObject WebExtensionAdapter::serializeSettings() {
+  auto const settings = SettingsHolder::instance();
+  return {{"extensionTelemetryEnabled", settings->extensionTelemetryEnabled()}};
+}
+
+void WebExtensionAdapter::applySettings(const QJsonObject& data) {
+  auto const settings = SettingsHolder::instance();
+
+  auto enabled = data["extensionTelemetryEnabled"];
+  if (enabled.isBool()) {
+    settings->setExtensionTelemetryEnabled(enabled.toBool());
+  }
 }

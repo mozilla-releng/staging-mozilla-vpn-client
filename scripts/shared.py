@@ -2,17 +2,20 @@ import os
 import sys
 import xml.etree.ElementTree as ET
 
-def write_en_language(filename, strings):
+def write_en_language(filename, strings, key_as_id):
     ts = ET.Element("TS")
     ts.set("version", "2.1")
-    ts.set("language", "en")
+    ts.set("language", "en-US")
 
     context = ET.SubElement(ts, "context")
     ET.SubElement(context, "name")
 
     for key, value in strings.items():
         message = ET.SubElement(context, "message")
-        message.set("id", key)
+        if key_as_id:
+            message.set("id", key)
+        else:
+            message.set("id", value["string_id"])
 
         location = ET.SubElement(message, "location")
         location.set("filename", "addon.qml")

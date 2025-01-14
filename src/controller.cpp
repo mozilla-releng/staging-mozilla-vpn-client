@@ -8,8 +8,6 @@
 #include <QNetworkInformation>
 
 #include "app.h"
-#include "apppermission.h"
-#include "captiveportal/captiveportal.h"
 #include "constants.h"
 #include "controllerimpl.h"
 #include "dnshelper.h"
@@ -34,12 +32,7 @@
 #include "settingsholder.h"
 #include "tasks/controlleraction/taskcontrolleraction.h"
 #include "tasks/function/taskfunction.h"
-#include "tasks/heartbeat/taskheartbeat.h"
 #include "taskscheduler.h"
-
-#if defined MZ_PROXY_ENABLED
-#  include "proxycontroller.h"
-#endif
 
 #if defined(MZ_FLATPAK)
 #  include "platforms/linux/networkmanagercontroller.h"
@@ -481,8 +474,10 @@ void Controller::activateInternal(
     entryConfig.m_hopType = InterfaceConfig::MultiHopEntry;
     entryConfig.m_allowedIPAddressRanges.append(
         IPAddress(exitServer.ipv4AddrIn()));
-    entryConfig.m_allowedIPAddressRanges.append(
-        IPAddress(exitServer.ipv6AddrIn()));
+    if (!exitServer.ipv6AddrIn().isEmpty()) {
+      entryConfig.m_allowedIPAddressRanges.append(
+          IPAddress(exitServer.ipv6AddrIn()));
+    }
 
     // If requested, force the use of port 53/DNS.
     if (dnsPort == ForceDNSPort) {
@@ -578,8 +573,10 @@ QList<IPAddress> Controller::getAllowedIPAddressRanges(
   // Allow access to the internal gateway addresses.
   logger.debug() << "Allow the IPv4 gateway:" << exitServer.ipv4Gateway();
   list.append(IPAddress(QHostAddress(exitServer.ipv4Gateway()), 32));
-  logger.debug() << "Allow the IPv6 gateway:" << exitServer.ipv6Gateway();
-  list.append(IPAddress(QHostAddress(exitServer.ipv6Gateway()), 128));
+  if (!exitServer.ipv6Gateway().isEmpty()) {
+    logger.debug() << "Allow the IPv6 gateway:" << exitServer.ipv6Gateway();
+    list.append(IPAddress(QHostAddress(exitServer.ipv6Gateway()), 128));
+  }
 
   // Ensure that the Mullvad proxy services are always allowed.
   list.append(
@@ -591,19 +588,19 @@ QList<IPAddress> Controller::getAllowedIPAddressRanges(
 // static
 QList<IPAddress> Controller::getExtensionProxyAddressRanges(
     const Server& exitServer) {
-  auto const dns = DNSHelper::getDNSDetails(exitServer.ipv4Gateway());
-  if (dns.dnsType == "Default" || dns.dnsType == "Custom") {
-    return {IPAddress(QHostAddress(exitServer.ipv4Gateway()), 32),
-            IPAddress(QHostAddress(exitServer.ipv6Gateway()), 128),
-            IPAddress(QHostAddress{MULLVAD_PROXY_RANGE},
-                      MULLVAD_PROXY_RANGE_LENGTH)};
-  }
-  return {
+  QList<IPAddress> ranges = {
       IPAddress(QHostAddress(exitServer.ipv4Gateway()), 32),
-      IPAddress(QHostAddress(exitServer.ipv6Gateway()), 128),
-      IPAddress(QHostAddress{MULLVAD_PROXY_RANGE}, MULLVAD_PROXY_RANGE_LENGTH),
-      IPAddress(QHostAddress(dns.ipAddress), 32),
-  };
+      IPAddress(QHostAddress{MULLVAD_PROXY_RANGE}, MULLVAD_PROXY_RANGE_LENGTH)};
+  if (!exitServer.ipv6Gateway().isEmpty()) {
+    ranges.append(IPAddress(QHostAddress(exitServer.ipv6Gateway()), 128));
+  }
+
+  auto const dns = DNSHelper::getDNSDetails(exitServer.ipv4Gateway());
+  if (dns.dnsType != "Default" && dns.dnsType != "Custom") {
+    ranges.append(IPAddress(QHostAddress(dns.ipAddress), 32));
+  }
+
+  return ranges;
 }
 
 void Controller::activateNext() {
@@ -817,12 +814,6 @@ bool Controller::processNextStep() {
     emit readyToUpdate();
     return true;
   }
-
-  if (nextStep == BackendFailure) {
-    emit readyToBackendFailure();
-    return true;
-  }
-
   return false;
 }
 
@@ -944,24 +935,6 @@ bool Controller::switchServers(const ServerData& serverData) {
   deactivate();
 
   return true;
-}
-
-void Controller::backendFailure() {
-  logger.error() << "backend failure";
-
-  if (m_state == StateInitializing || m_state == StateOff) {
-    emit readyToBackendFailure();
-    return;
-  }
-
-  m_nextStep = BackendFailure;
-
-  if (m_state == StateOn || m_state == StateOnPartial ||
-      m_state == StateSwitching || m_state == StateSilentSwitching ||
-      m_state == StateConnecting || m_state == StateConfirming) {
-    deactivate();
-    return;
-  }
 }
 
 QString Controller::currentServerString() const {

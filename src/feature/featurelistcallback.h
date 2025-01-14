@@ -16,7 +16,7 @@
 #ifdef MZ_LINUX
 #  include <QProcessEnvironment>
 
-#  include "platforms/linux/linuxdependencies.h"
+#  include "platforms/linux/linuxutils.h"
 #  include "versionutils.h"
 #endif
 
@@ -94,16 +94,13 @@ bool FeatureCallback_captivePortal() {
 }
 
 bool FeatureCallback_inAppAuthentication() {
-#if defined(MZ_WASM)
+#if defined(MZ_WINDOWS)
+  // Windows: InAppAuth for prod, web auth for staging
+  return Constants::inProduction();
+#elif defined(MZ_ANDROID) || defined(MZ_IOS) || defined(MZ_WASM)
   return true;
 #else
-  if (Constants::inProduction() || byPlatform({
-                                       .android = true,
-                                       .ios = true,
-                                   })()) {
-    return true;
-  }
-
+  // macOS and Linux
   return false;
 #endif
 }
@@ -123,7 +120,7 @@ bool FeatureCallback_splitTunnel() {
 
   /* Control groups v2 must be mounted for app/traffic classification
    */
-  if (LinuxDependencies::findCgroup2Path().isNull()) {
+  if (LinuxUtils::findCgroup2Path().isNull()) {
     return false;
   }
 
@@ -135,7 +132,7 @@ bool FeatureCallback_splitTunnel() {
   }
   QStringList desktop = pe.value("XDG_CURRENT_DESKTOP").split(":");
   if (desktop.contains("GNOME")) {
-    QString shellVersion = LinuxDependencies::gnomeShellVersion();
+    QString shellVersion = LinuxUtils::gnomeShellVersion();
     if (shellVersion.isNull()) {
       return false;
     }
@@ -143,7 +140,7 @@ bool FeatureCallback_splitTunnel() {
       return false;
     }
   } else if (desktop.contains("KDE")) {
-    QString kdeVersion = LinuxDependencies::kdeFrameworkVersion();
+    QString kdeVersion = LinuxUtils::kdeFrameworkVersion();
     if (kdeVersion.isNull()) {
       return false;
     }
