@@ -37,11 +37,11 @@ tasks:
                 default: build
         signing-format:
             by-build-type:
-                android.*: stage_autograph_apk
-                linux.*: stage_autograph_debsign
+                android.*: gcp_prod_autograph_apk
+                linux.*: gcp_prod_autograph_debsign
                 macos.*: macapp
-                windows/opt: stage_autograph_authenticode_202404
-                addons/opt: stage_autograph_rsa
+                windows/opt: gcp_prod_autograph_authenticode_202404
+                addons/opt: gcp_prod_autograph_rsa
         treeherder:
             job-symbol:
                 by-build-type:
