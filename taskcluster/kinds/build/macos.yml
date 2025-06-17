@@ -48,7 +48,7 @@ macos/opt:
         symbol: B
     run:
         command: ./taskcluster/scripts/build/macos_build.sh -d
-    requires-level: 3 
+    #requires-level: 3 
     scopes:
         - secrets:get:project/mozillavpn/level-1/sentry
 
