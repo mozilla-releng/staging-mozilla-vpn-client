@@ -57,21 +57,22 @@ tasks:
                 - artifact: MozillaVPN.tar.gz
                   extract: false
         dependencies:
-            by-level:
-                "3":
-                    signing: signing-macos/opt
-                default:
-                    build: build-macos/pr
+            signing: signing-macos/opt
+            #by-level:
+            #    "3":
+            #        signing: signing-macos/opt
+            #    default:
+            #        build: build-macos/pr
         worker-type: b-macos
         worker:
             chain-of-trust: true
             max-run-time: 3600
         release-artifacts: [MozillaVPN.pkg]
         attributes:
-            build-type:
-                by-level:
-                    "3": macos/opt
-                    default: macos/pr
+            build-type: macos/opt
+            #    by-level:
+            #        "3": macos/opt
+            #        default: macos/pr
         run:
             using: run-task
             cwd: '{checkout}'
