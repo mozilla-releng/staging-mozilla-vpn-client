@@ -118,6 +118,10 @@ def add_hardened_sign_config(config, tasks):
                 "profile_name": "orgmozillamacosFirefoxVPN.provisionprofile",
                 "target_path": "/Contents/embedded.provisionprofile",
             },
+            {
+                "profile_name": "orgmozillamacosFirefoxVPNloginitem.provisionprofile",
+                "target_path": "/Contents/Library/LoginItems/MozillaVPNLoginItem.app/Contents/embedded.provisionprofile",
+            },
         ]
 
         task["worker"]["hardened-sign-config"] = hardened_sign_config
