@@ -229,9 +229,10 @@ tasks:
               taskclusterProxy: true
               chainOfTrust: true
 
-            # Note: This task is built server side without the context or tooling that
-            # exist in tree so we must hard code the hash
-            image: mozillareleases/taskgraph:decision-v14.2.1@sha256:f4e3a22df9ec0017a2534b3a7b4cd9b60318f86619e0c2156c12c1ec1a0e32cb
+            image:
+                type: indexed-image
+                path: public/image.tar.zst
+                namespace: taskgraph.v2.taskgraph-pr.772.latest.docker-image.decision
 
             maxRunTime: 1800
 
