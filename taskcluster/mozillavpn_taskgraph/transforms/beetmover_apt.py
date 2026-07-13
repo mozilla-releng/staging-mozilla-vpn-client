@@ -53,7 +53,7 @@ def beetmover_apt(config, tasks):
         task["worker"]["gcs-sources"] = gcs_sources
 
         if task["attributes"]["shipping-phase"] == "ship-client":
-            bucket = "release"
+            bucket = "dep"
         else:
             bucket = "dep"
 
