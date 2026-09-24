@@ -74,7 +74,7 @@ workers:
             provisioner: scriptworker-k8s
             implementation: scriptworker-signing
             os: scriptworker
-            worker-type: mozillavpn-t-signing
+            worker-type: mozillavpn-t-signing-dev
         signing:
             provisioner: scriptworker-k8s
             implementation: scriptworker-signing
@@ -82,7 +82,7 @@ workers:
             worker-type:
                 by-level:
                     "3": mozillavpn-3-signing
-                    default: mozillavpn-t-signing
+                    default: mozillavpn-t-signing-dev
         macos-dep-signing:
             provisioner: scriptworker-prov-v1
             implementation: scriptworker-iscript
@@ -100,17 +100,17 @@ workers:
             provisioner: scriptworker-k8s
             implementation: scriptworker-pushapk
             os: scriptworker
-            worker-type: 'mozillavpn-{level}-pushapk'
+            worker-type: 'mozillavpn-{level}-pushapk-dev'
         beetmover:
             provisioner: scriptworker-k8s
             implementation: scriptworker-beetmover
             os: scriptworker
-            worker-type: 'mozillavpn-{level}-beetmover'
+            worker-type: 'mozillavpn-{level}-beetmover-dev'
         beetmover-apt:
             provisioner: scriptworker-k8s
             implementation: beetmover-import-from-gcs-to-artifact-registry
             os: scriptworker
-            worker-type: 'mozillavpn-{level}-beetmover'
+            worker-type: 'mozillavpn-{level}-beetmover-dev'
         # For now the `beetmover-apt-promote` task is importing to the staging
         # apt repository. To do this it needs to run on a level 1 worker,
         # despite running in an L3 release graph. See bug 1927890.
@@ -118,12 +118,12 @@ workers:
             provisioner: scriptworker-k8s
             implementation: beetmover-import-from-gcs-to-artifact-registry
             os: scriptworker
-            worker-type: 'mozillavpn-1-beetmover'
+            worker-type: 'mozillavpn-1-beetmover-dev'
         shipit:
             provisioner: scriptworker-k8s
             implementation: scriptworker-shipit
             os: scriptworker
-            worker-type: 'mozillavpn-{level}-shipit'
+            worker-type: 'mozillavpn-{level}-shipit-dev'
         succeed:
             provisioner: built-in
             implementation: succeed
